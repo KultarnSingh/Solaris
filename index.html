@@ -11,7 +11,7 @@
     <p id="output"></p>
     <script>
         function script(){
-            fetch("/api/user")
+            fetch("https://edt-solaris.netlify.app//api/user")
             .then(res => res.json())
             .then(data => { 
                 document.getElementById("output").innerText = data.name + " is " + data.age + " year's old."
