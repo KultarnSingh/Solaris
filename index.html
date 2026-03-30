@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOLARIS | Pro IoT Dashboard</title>
+    <title>SOLARIS | Live IoT Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -39,7 +40,6 @@
     </nav>
 
     <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div id="hero-card" class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
                 <div class="z-10 text-center md:text-left">
@@ -47,10 +47,6 @@
                     <div class="flex items-center gap-4 justify-center md:justify-start">
                         <h2 id="active-source" class="text-5xl md:text-6xl font-black text-white">STANDBY</h2>
                         <i id="source-icon" class="fas fa-microchip text-4xl text-slate-600"></i>
-                    </div>
-                    <div class="mt-6 flex gap-2 justify-center md:justify-start">
-                        <span class="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold border border-white/10 uppercase">Auto Switching</span>
-                        <span class="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold border border-white/10 uppercase">ESP32 Core</span>
                     </div>
                 </div>
                 <div class="mt-8 md:mt-0 text-center md:text-right z-10">
@@ -86,39 +82,31 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="glass p-6 rounded-3xl group">
+            <div class="glass p-6 rounded-3xl">
                 <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Solar (ZMPT101B)</p>
                 <h3 id="solar-v" class="text-3xl font-bold text-orange-400 font-mono">0.0V</h3>
-                <p class="text-[10px] text-slate-500 mt-2">DC Source Check</p>
             </div>
-            <div class="glass p-6 rounded-3xl group">
+            <div class="glass p-6 rounded-3xl">
                 <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Grid (ZMPT101B)</p>
                 <h3 id="grid-v" class="text-3xl font-bold text-blue-400 font-mono">0.0V</h3>
-                <p class="text-[10px] text-slate-500 mt-2">Mains 230V AC</p>
             </div>
-            <div class="glass p-6 rounded-3xl group">
+            <div class="glass p-6 rounded-3xl">
                 <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Calculated Savings</p>
                 <h3 id="daily-save" class="text-3xl font-bold text-yellow-500 font-mono">₹0.00</h3>
-                <p class="text-[10px] text-slate-500 mt-2">Tariff: ₹8.50/unit</p>
             </div>
-            <div class="glass p-6 rounded-3xl group">
+            <div class="glass p-6 rounded-3xl">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Battery Status</p>
                     <span id="battery-pct" class="text-xs font-bold text-green-400">0%</span>
                 </div>
-                <div class="w-full bg-slate-900/50 h-2.5 rounded-full overflow-hidden border border-white/5">
-                    <div id="battery-bar" class="bg-gradient-to-r from-orange-500 to-green-500 h-full w-[0%] transition-all duration-700"></div>
+                <div class="w-full bg-slate-900/50 h-2.5 rounded-full overflow-hidden">
+                    <div id="battery-bar" class="bg-gradient-to-r from-orange-500 to-green-500 h-full w-[0%] transition-all"></div>
                 </div>
             </div>
         </div>
 
         <div class="glass p-8 rounded-[3rem]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-[11px] uppercase tracking-[0.3em] text-slate-500">Live Power Trend (Watts)</h3>
-                <div class="flex gap-4">
-                    <span class="text-[10px] font-bold text-orange-400 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Consumption</span>
-                </div>
-            </div>
+            <h3 class="font-black text-[11px] uppercase tracking-[0.3em] text-slate-500 mb-6 text-center">Live Power Consumption Trend (Watts)</h3>
             <div class="h-[300px]">
                 <canvas id="powerTrend"></canvas>
             </div>
@@ -126,22 +114,21 @@
     </main>
 
     <script>
-        // --- 1. FIREBASE SETUP ---
+        // --- 1. FIREBASE SETUP (FIXED URL) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDD7KLq0QZ2zXi5XHwjs90BK88h35sDriY",
             authDomain: "solaris-51385.firebaseapp.com",
-            databaseURL: "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app/data.json",
+            databaseURL: "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app", // REMOVED /data.json
             projectId: "solaris-51385",
             storageBucket: "solaris-51385.firebasestorage.app",
             messagingSenderId: "283927399793",
-            appId: "1:283927399793:web:797f71cbe2dd864b583ad0",
-            measurementId: "G-5Y4X32LN21"
+            appId: "1:283927399793:web:797f71cbe2dd864b583ad0"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- 2. CHART CONFIGURATION (STABLE SCALE) ---
+        // --- 2. CHART CONFIG ---
         const ctx = document.getElementById('powerTrend').getContext('2d');
         const powerChart = new Chart(ctx, {
             type: 'line',
@@ -163,38 +150,31 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        min: 0,
-                        max: 600, // FIXED: Prevents vertical expansion
-                        grid: { color: 'rgba(255,255,255,0.03)' },
-                        ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#64748b', font: { size: 10 } }
-                    }
+                    y: { min: 0, max: 600, grid: { color: 'rgba(255,255,255,0.03)' } },
+                    x: { grid: { display: false } }
                 }
             }
         });
 
         // --- 3. LIVE LISTENERS ---
+        // Listening to your exact data structure
         db.ref('solaris_data/live').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
-            // Connection Status
+            // Connection Indicator
             const indicator = document.getElementById('status-indicator');
             indicator.innerHTML = `<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span><span class="text-[10px] font-bold text-green-500 uppercase tracking-tighter">System Online</span>`;
             indicator.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20";
 
-            // Update UI
+            // Update Text UI
             document.getElementById('live-wattage').innerText = data.wattage;
             document.getElementById('solar-v').innerText = data.solar_v.toFixed(1) + "V";
             document.getElementById('grid-v').innerText = data.grid_v.toFixed(0) + "V";
             document.getElementById('battery-pct').innerText = data.battery_pct + "%";
             document.getElementById('battery-bar').style.width = data.battery_pct + "%";
 
-            // Dynamic Styling (Hero Card)
+            // Handle Source Switching Visuals
             const hero = document.getElementById('hero-card');
             const sourceText = document.getElementById('active-source');
             const icon = document.getElementById('source-icon');
@@ -213,7 +193,7 @@
                 hero.classList.remove('active-solar');
             }
 
-            // Update Chart
+            // Update Line Chart
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             if(powerChart.data.labels.length > 20) {
                 powerChart.data.labels.shift();
@@ -235,11 +215,11 @@
 
         // --- 4. COMMAND SENDER ---
         function sendControl(source) {
-            db.ref('solaris_data/control').set({
+            db.ref('solaris_data/control').update({
                 manual_override: true,
                 target_source: source,
                 timestamp: Date.now()
-            }).then(() => alert('Command Sent: Switch to ' + source));
+            });
         }
     </script>
 </body>
