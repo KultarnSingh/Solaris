@@ -3,99 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOLARIS | Live IoT Dashboard</title>
+    <title>SOLARIS | Pro IoT Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .active-solar { border-color: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.15); }
+        .active-grid { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-100 min-h-screen">
 
-    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/5">
         <div class="flex items-center gap-3">
-            <div class="bg-orange-500 p-2 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+            <div class="bg-orange-500 p-2 rounded-xl shadow-lg">
                 <i class="fas fa-solar-panel text-white text-xl"></i>
             </div>
-            <h1 class="text-xl font-bold">SOLARIS <span class="text-orange-500 text-sm">LIVE</span></h1>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white">SOLARIS <span class="text-orange-500 text-xs font-black">PRO</span></h1>
+                <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">IoT Energy Management</p>
+            </div>
         </div>
-        <div id="status-indicator" class="text-[10px] font-bold text-red-500 uppercase px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
-            Offline
+        <div class="flex items-center gap-4">
+            <div id="status-indicator" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20">
+                <span class="relative flex h-2 w-2"><span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span></span>
+                <span class="text-[10px] font-bold text-red-500 uppercase tracking-tighter">System Offline</span>
+            </div>
         </div>
     </nav>
 
-    <main class="p-6 max-w-7xl mx-auto space-y-6">
+    <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 glass p-8 rounded-[2rem] flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
-                <div class="z-10">
-                    <p class="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">Active Power Source</p>
-                    <h2 id="active-source" class="text-5xl font-extrabold text-white">---</h2>
+            <div id="hero-card" class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+                <div class="z-10 text-center md:text-left">
+                    <p class="text-slate-400 uppercase text-[10px] font-black tracking-[0.2em] mb-3">Power Logic State</p>
+                    <div class="flex items-center gap-4 justify-center md:justify-start">
+                        <h2 id="active-source" class="text-5xl md:text-6xl font-black text-white">STANDBY</h2>
+                        <i id="source-icon" class="fas fa-microchip text-4xl text-slate-600"></i>
+                    </div>
+                    <div class="mt-6 flex gap-2 justify-center md:justify-start">
+                        <span class="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold border border-white/10 uppercase">Auto Switching</span>
+                        <span class="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold border border-white/10 uppercase">ESP32 Core</span>
+                    </div>
                 </div>
-                <div class="mt-8 md:mt-0 text-right z-10">
-                    <p class="text-slate-400 text-xs font-bold uppercase mb-1">Current Load</p>
-                    <div class="text-7xl font-light"><span id="live-wattage" class="font-bold">0</span><span class="text-2xl text-slate-500 ml-2">W</span></div>
+                <div class="mt-8 md:mt-0 text-center md:text-right z-10">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Live Consumption</p>
+                    <div class="text-7xl md:text-8xl font-black tracking-tighter"><span id="live-wattage">0</span><span class="text-2xl text-slate-600 ml-2 font-medium tracking-normal">W</span></div>
                 </div>
             </div>
 
-            <div class="glass p-8 rounded-[2rem] border-l-4 border-l-orange-500">
-                <h3 class="text-orange-500 font-bold mb-4 uppercase text-xs tracking-widest">Insights</h3>
-                <p class="text-sm text-slate-300">Daily Savings: <span id="insight-savings" class="text-white font-bold">₹0.00</span></p>
-                <p class="text-sm text-slate-300 mt-2">Efficiency: <span id="insight-eff" class="text-white font-bold">0%</span></p>
+            <div class="flex flex-col gap-6">
+                <div class="glass p-6 rounded-[2rem]">
+                    <h3 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fas fa-sliders-h text-orange-500"></i> Manual Override
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="sendControl('solar')" class="bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 py-3 rounded-xl font-bold text-xs transition uppercase">Force Solar</button>
+                        <button onclick="sendControl('grid')" class="bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 py-3 rounded-xl font-bold text-xs transition uppercase">Force Grid</button>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-[2rem] border-l-4 border-l-orange-500 flex-grow">
+                    <h3 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4">Smart Logic</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-400">Day Savings:</span>
+                            <span id="insight-savings" class="font-bold text-orange-400 font-mono text-lg">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-400">System Eff:</span>
+                            <span id="insight-eff" class="font-bold text-green-400 font-mono text-lg">0%</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Solar (ZMPT101B)</p>
-                <h3 id="solar-v" class="text-3xl font-bold text-orange-400">0.0V</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass p-6 rounded-3xl group">
+                <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Solar (ZMPT101B)</p>
+                <h3 id="solar-v" class="text-3xl font-bold text-orange-400 font-mono">0.0V</h3>
+                <p class="text-[10px] text-slate-500 mt-2">DC Source Check</p>
             </div>
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Grid (ZMPT101B)</p>
-                <h3 id="grid-v" class="text-3xl font-bold text-blue-400">0.0V</h3>
+            <div class="glass p-6 rounded-3xl group">
+                <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Grid (ZMPT101B)</p>
+                <h3 id="grid-v" class="text-3xl font-bold text-blue-400 font-mono">0.0V</h3>
+                <p class="text-[10px] text-slate-500 mt-2">Mains 230V AC</p>
             </div>
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Estimated Savings</p>
-                <h3 id="daily-save" class="text-3xl font-bold text-yellow-500">₹0.00</h3>
+            <div class="glass p-6 rounded-3xl group">
+                <p class="text-slate-500 text-[9px] font-black uppercase mb-1 tracking-widest">Calculated Savings</p>
+                <h3 id="daily-save" class="text-3xl font-bold text-yellow-500 font-mono">₹0.00</h3>
+                <p class="text-[10px] text-slate-500 mt-2">Tariff: ₹8.50/unit</p>
             </div>
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Battery Level</p>
-                <div id="battery-pct" class="text-2xl font-bold mb-2 text-green-400">0%</div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div id="battery-bar" class="bg-green-500 h-full w-[0%] transition-all"></div>
+            <div class="glass p-6 rounded-3xl group">
+                <div class="flex justify-between items-end mb-2">
+                    <p class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Battery Status</p>
+                    <span id="battery-pct" class="text-xs font-bold text-green-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-900/50 h-2.5 rounded-full overflow-hidden border border-white/5">
+                    <div id="battery-bar" class="bg-gradient-to-r from-orange-500 to-green-500 h-full w-[0%] transition-all duration-700"></div>
                 </div>
             </div>
         </div>
 
-        <div class="glass p-8 rounded-[2rem]">
-            <h3 class="font-bold text-lg mb-6 text-slate-400">Live Power Trend</h3>
-            <canvas id="powerTrend" height="250"></canvas>
+        <div class="glass p-8 rounded-[3rem]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-[11px] uppercase tracking-[0.3em] text-slate-500">Live Power Trend (Watts)</h3>
+                <div class="flex gap-4">
+                    <span class="text-[10px] font-bold text-orange-400 flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Consumption</span>
+                </div>
+            </div>
+            <div class="h-[300px]">
+                <canvas id="powerTrend"></canvas>
+            </div>
         </div>
     </main>
 
     <script>
-        // --- STEP 1: FIREBASE CONFIGURATION ---
-        // Replace these values with your Firebase Project settings!
+        // --- 1. FIREBASE SETUP ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
+            apiKey: "AIzaSyDD7KLq0QZ2zXi5XHwjs90BK88h35sDriY",
             authDomain: "solaris-51385.firebaseapp.com",
             databaseURL: "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "solaris-51385",
-            storageBucket: "solaris-51385.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            storageBucket: "solaris-51385.firebasestorage.app",
+            messagingSenderId: "283927399793",
+            appId: "1:283927399793:web:797f71cbe2dd864b583ad0",
+            measurementId: "G-5Y4X32LN21"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- STEP 2: CHART LOGIC ---
+        // --- 2. CHART CONFIGURATION (STABLE SCALE) ---
         const ctx = document.getElementById('powerTrend').getContext('2d');
         const powerChart = new Chart(ctx, {
             type: 'line',
@@ -105,52 +151,96 @@
                     label: 'Watts',
                     data: [],
                     borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    borderWidth: 3,
+                    backgroundColor: 'rgba(249, 115, 22, 0.05)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 0
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 600, // FIXED: Prevents vertical expansion
+                        grid: { color: 'rgba(255,255,255,0.03)' },
+                        ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b', font: { size: 10 } }
+                    }
+                }
+            }
         });
 
-        // --- STEP 3: LIVE DATA LISTENER ---
+        // --- 3. LIVE LISTENERS ---
         db.ref('solaris_data/live').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
-            // Update Status
+            // Connection Status
             const indicator = document.getElementById('status-indicator');
-            indicator.innerText = "System Online";
-            indicator.className = "text-[10px] font-bold text-green-400 uppercase px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20";
+            indicator.innerHTML = `<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span><span class="text-[10px] font-bold text-green-500 uppercase tracking-tighter">System Online</span>`;
+            indicator.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20";
 
-            // Update UI Elements
-            document.getElementById('active-source').innerText = data.active_source.toUpperCase();
+            // Update UI
             document.getElementById('live-wattage').innerText = data.wattage;
-            document.getElementById('solar-v').innerText = data.solar_v + "V";
-            document.getElementById('grid-v').innerText = data.grid_v + "V";
+            document.getElementById('solar-v').innerText = data.solar_v.toFixed(1) + "V";
+            document.getElementById('grid-v').innerText = data.grid_v.toFixed(0) + "V";
             document.getElementById('battery-pct').innerText = data.battery_pct + "%";
             document.getElementById('battery-bar').style.width = data.battery_pct + "%";
 
+            // Dynamic Styling (Hero Card)
+            const hero = document.getElementById('hero-card');
+            const sourceText = document.getElementById('active-source');
+            const icon = document.getElementById('source-icon');
+
+            if(data.active_source === "solar") {
+                sourceText.innerText = "SOLAR";
+                sourceText.className = "text-5xl md:text-6xl font-black text-orange-500";
+                icon.className = "fas fa-sun text-4xl text-orange-500 animate-pulse";
+                hero.classList.add('active-solar');
+                hero.classList.remove('active-grid');
+            } else {
+                sourceText.innerText = "GRID";
+                sourceText.className = "text-5xl md:text-6xl font-black text-blue-500";
+                icon.className = "fas fa-plug text-4xl text-blue-500";
+                hero.classList.add('active-grid');
+                hero.classList.remove('active-solar');
+            }
+
             // Update Chart
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            if(powerChart.data.labels.length > 15) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if(powerChart.data.labels.length > 20) {
                 powerChart.data.labels.shift();
                 powerChart.data.datasets[0].data.shift();
             }
             powerChart.data.labels.push(time);
             powerChart.data.datasets[0].data.push(data.wattage);
-            powerChart.update();
+            powerChart.update('none');
         });
 
-        // Listen for stats/savings
+        // Stats Listener
         db.ref('solaris_data/stats').on('value', (snapshot) => {
             const stats = snapshot.val();
             if(!stats) return;
-            document.getElementById('daily-save').innerText = "₹" + stats.today_savings;
-            document.getElementById('insight-savings').innerText = "₹" + stats.today_savings;
+            document.getElementById('daily-save').innerText = "₹" + stats.today_savings.toFixed(2);
+            document.getElementById('insight-savings').innerText = "₹" + stats.today_savings.toFixed(2);
             document.getElementById('insight-eff').innerText = stats.efficiency + "%";
         });
 
+        // --- 4. COMMAND SENDER ---
+        function sendControl(source) {
+            db.ref('solaris_data/control').set({
+                manual_override: true,
+                target_source: source,
+                timestamp: Date.now()
+            }).then(() => alert('Command Sent: Switch to ' + source));
+        }
     </script>
 </body>
 </html>
