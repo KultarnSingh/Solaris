@@ -1,22 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Server</title>
+<title>SOLARIS Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { background:#0d1117; color:white; font-family:sans-serif; text-align:center; }
+.card { display:inline-block; padding:20px; margin:10px; border-radius:10px; background:#161b22; }
+.big { font-size:28px; font-weight:bold; }
+.green { color:lime; }
+.yellow { color:orange; }
+.red { color:red; }
+</style>
 </head>
+
 <body>
-    <h1>User info</h1>
-    <button id="button" onclick="script()"> Click me</button>
-    <p id="output"></p>
-    <script>
-        function script(){
-            fetch("https://edt-solaris.netlify.app//api/user")
-            .then(res => res.json())
-            .then(data => { 
-                document.getElementById("output").innerText = data.name + " is " + data.age + " year's old."
-            })
+
+<h1>⚡ SOLARIS Smart Energy Dashboard</h1>
+
+<div class="card">
+    <h2>Current Source</h2>
+    <p id="source" class="big">--</p>
+</div>
+
+<div class="card">
+    <h2>Live Power</h2>
+    <p id="power" class="big">-- W</p>
+</div>
+
+<div class="card">
+    <h2>System Status</h2>
+    <p id="status" class="big">--</p>
+</div>
+
+<br>
+
+<div class="card">
+    <h3>Today's Usage</h3>
+    <p id="today">-- kWh</p>
+</div>
+
+<div class="card">
+    <h3>Monthly</h3>
+    <p id="month">-- kWh</p>
+</div>
+
+<div class="card">
+    <h3>Solar Savings</h3>
+    <p id="savings">₹ --</p>
+</div>
+
+<h2>📊 Power Trend</h2>
+<canvas id="chart"></canvas>
+
+<h2>🧠 Smart Insights</h2>
+<p id="insight">Loading...</p>
+
+<script>
+
+const url = "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app/data.json";
+
+let chart = new Chart(document.getElementById("chart"), {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: "Power (W)", data: [] }] }
+});
+
+fetch(url)
+.then(res => res.json())
+.then(data => {
+
+    let totalEnergy = 0;
+    let solarEnergy = 0;
+    let labels = [];
+    let values = [];
+
+    let prevTime = null;
+    let peakPower = 0;
+    let peakTime = "";
+
+    for (let t in data) {
+
+        let d = data[t];
+
+        let power = (d.source === "Solar")
+            ? d.solarVoltage * d.solarCurrent
+            : d.gridVoltage * d.gridCurrent;
+
+        if (power > peakPower) {
+            peakPower = power;
+            peakTime = new Date(parseInt(t)).toLocaleTimeString();
         }
-    </script>
+
+        if (prevTime) {
+            let dt = (t - prevTime);
+            totalEnergy += power * (dt / 3600000);
+
+            if (d.source === "Solar") {
+                solarEnergy += power * (dt / 3600000);
+            }
+        }
+
+        prevTime = t;
+
+        labels.push(new Date(parseInt(t)).toLocaleTimeString());
+        values.push(power);
+    }
+
+    let savings = (solarEnergy/1000) * 8;
+
+    document.getElementById("today").innerText = totalEnergy.toFixed(2);
+    document.getElementById("savings").innerText = "₹ " + savings.toFixed(2);
+
+    document.getElementById("power").innerText = values[values.length-1] + " W";
+    document.getElementById("source").innerText = data[Object.keys(data).pop()].source;
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = values;
+    chart.update();
+
+    document.getElementById("insight").innerText =
+        "Peak usage was " + peakPower + "W at " + peakTime +
+        ". You saved ₹" + savings.toFixed(2) + " using solar today.";
+
+});
+</script>
+
 </body>
 </html>
