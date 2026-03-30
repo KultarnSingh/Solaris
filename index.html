@@ -1,129 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>SOLARIS Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLARIS | Live IoT Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-<style>
-body { background:#0d1117; color:white; font-family:sans-serif; text-align:center; }
-.card { display:inline-block; padding:20px; margin:10px; border-radius:10px; background:#161b22; }
-.big { font-size:28px; font-weight:bold; }
-.green { color:lime; }
-.yellow { color:orange; }
-.red { color:red; }
-</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
 </head>
+<body class="bg-[#020617] text-slate-100 min-h-screen">
 
-<body>
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="bg-orange-500 p-2 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)]">
+                <i class="fas fa-solar-panel text-white text-xl"></i>
+            </div>
+            <h1 class="text-xl font-bold">SOLARIS <span class="text-orange-500 text-sm">LIVE</span></h1>
+        </div>
+        <div id="status-indicator" class="text-[10px] font-bold text-red-500 uppercase px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+            Offline
+        </div>
+    </nav>
 
-<h1>⚡ SOLARIS Smart Energy Dashboard</h1>
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass p-8 rounded-[2rem] flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+                <div class="z-10">
+                    <p class="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">Active Power Source</p>
+                    <h2 id="active-source" class="text-5xl font-extrabold text-white">---</h2>
+                </div>
+                <div class="mt-8 md:mt-0 text-right z-10">
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-1">Current Load</p>
+                    <div class="text-7xl font-light"><span id="live-wattage" class="font-bold">0</span><span class="text-2xl text-slate-500 ml-2">W</span></div>
+                </div>
+            </div>
 
-<div class="card">
-    <h2>Current Source</h2>
-    <p id="source" class="big">--</p>
-</div>
+            <div class="glass p-8 rounded-[2rem] border-l-4 border-l-orange-500">
+                <h3 class="text-orange-500 font-bold mb-4 uppercase text-xs tracking-widest">Insights</h3>
+                <p class="text-sm text-slate-300">Daily Savings: <span id="insight-savings" class="text-white font-bold">₹0.00</span></p>
+                <p class="text-sm text-slate-300 mt-2">Efficiency: <span id="insight-eff" class="text-white font-bold">0%</span></p>
+            </div>
+        </div>
 
-<div class="card">
-    <h2>Live Power</h2>
-    <p id="power" class="big">-- W</p>
-</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Solar (ZMPT101B)</p>
+                <h3 id="solar-v" class="text-3xl font-bold text-orange-400">0.0V</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Grid (ZMPT101B)</p>
+                <h3 id="grid-v" class="text-3xl font-bold text-blue-400">0.0V</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Estimated Savings</p>
+                <h3 id="daily-save" class="text-3xl font-bold text-yellow-500">₹0.00</h3>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Battery Level</p>
+                <div id="battery-pct" class="text-2xl font-bold mb-2 text-green-400">0%</div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="battery-bar" class="bg-green-500 h-full w-[0%] transition-all"></div>
+                </div>
+            </div>
+        </div>
 
-<div class="card">
-    <h2>System Status</h2>
-    <p id="status" class="big">--</p>
-</div>
+        <div class="glass p-8 rounded-[2rem]">
+            <h3 class="font-bold text-lg mb-6 text-slate-400">Live Power Trend</h3>
+            <canvas id="powerTrend" height="250"></canvas>
+        </div>
+    </main>
 
-<br>
+    <script>
+        // --- STEP 1: FIREBASE CONFIGURATION ---
+        // Replace these values with your Firebase Project settings!
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "solaris-51385.firebaseapp.com",
+            databaseURL: "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "solaris-51385",
+            storageBucket: "solaris-51385.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-<div class="card">
-    <h3>Today's Usage</h3>
-    <p id="today">-- kWh</p>
-</div>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-<div class="card">
-    <h3>Monthly</h3>
-    <p id="month">-- kWh</p>
-</div>
+        // --- STEP 2: CHART LOGIC ---
+        const ctx = document.getElementById('powerTrend').getContext('2d');
+        const powerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Watts',
+                    data: [],
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
 
-<div class="card">
-    <h3>Solar Savings</h3>
-    <p id="savings">₹ --</p>
-</div>
+        // --- STEP 3: LIVE DATA LISTENER ---
+        db.ref('solaris_data/live').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-<h2>📊 Power Trend</h2>
-<canvas id="chart"></canvas>
+            // Update Status
+            const indicator = document.getElementById('status-indicator');
+            indicator.innerText = "System Online";
+            indicator.className = "text-[10px] font-bold text-green-400 uppercase px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20";
 
-<h2>🧠 Smart Insights</h2>
-<p id="insight">Loading...</p>
+            // Update UI Elements
+            document.getElementById('active-source').innerText = data.active_source.toUpperCase();
+            document.getElementById('live-wattage').innerText = data.wattage;
+            document.getElementById('solar-v').innerText = data.solar_v + "V";
+            document.getElementById('grid-v').innerText = data.grid_v + "V";
+            document.getElementById('battery-pct').innerText = data.battery_pct + "%";
+            document.getElementById('battery-bar').style.width = data.battery_pct + "%";
 
-<script>
-
-const url = "https://solaris-51385-default-rtdb.asia-southeast1.firebasedatabase.app/data.json";
-
-let chart = new Chart(document.getElementById("chart"), {
-    type: 'line',
-    data: { labels: [], datasets: [{ label: "Power (W)", data: [] }] }
-});
-
-fetch(url)
-.then(res => res.json())
-.then(data => {
-
-    let totalEnergy = 0;
-    let solarEnergy = 0;
-    let labels = [];
-    let values = [];
-
-    let prevTime = null;
-    let peakPower = 0;
-    let peakTime = "";
-
-    for (let t in data) {
-
-        let d = data[t];
-
-        let power = (d.source === "Solar")
-            ? d.solarVoltage * d.solarCurrent
-            : d.gridVoltage * d.gridCurrent;
-
-        if (power > peakPower) {
-            peakPower = power;
-            peakTime = new Date(parseInt(t)).toLocaleTimeString();
-        }
-
-        if (prevTime) {
-            let dt = (t - prevTime);
-            totalEnergy += power * (dt / 3600000);
-
-            if (d.source === "Solar") {
-                solarEnergy += power * (dt / 3600000);
+            // Update Chart
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if(powerChart.data.labels.length > 15) {
+                powerChart.data.labels.shift();
+                powerChart.data.datasets[0].data.shift();
             }
-        }
+            powerChart.data.labels.push(time);
+            powerChart.data.datasets[0].data.push(data.wattage);
+            powerChart.update();
+        });
 
-        prevTime = t;
+        // Listen for stats/savings
+        db.ref('solaris_data/stats').on('value', (snapshot) => {
+            const stats = snapshot.val();
+            if(!stats) return;
+            document.getElementById('daily-save').innerText = "₹" + stats.today_savings;
+            document.getElementById('insight-savings').innerText = "₹" + stats.today_savings;
+            document.getElementById('insight-eff').innerText = stats.efficiency + "%";
+        });
 
-        labels.push(new Date(parseInt(t)).toLocaleTimeString());
-        values.push(power);
-    }
-
-    let savings = (solarEnergy/1000) * 8;
-
-    document.getElementById("today").innerText = totalEnergy.toFixed(2);
-    document.getElementById("savings").innerText = "₹ " + savings.toFixed(2);
-
-    document.getElementById("power").innerText = values[values.length-1] + " W";
-    document.getElementById("source").innerText = data[Object.keys(data).pop()].source;
-
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = values;
-    chart.update();
-
-    document.getElementById("insight").innerText =
-        "Peak usage was " + peakPower + "W at " + peakTime +
-        ". You saved ₹" + savings.toFixed(2) + " using solar today.";
-
-});
-</script>
-
+    </script>
 </body>
 </html>
