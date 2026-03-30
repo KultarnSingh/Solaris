@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Server</title>
+</head>
+<body>
+    <h1>User info</h1>
+    <button id="button" onclick="script()"> Click me</button>
+    <p id="output"></p>
+    <script>
+        function script(){
+            fetch("/api/user")
+            .then(res => res.json())
+            .then(data => { 
+                document.getElementById("output").innerText = data.name + " is " + data.age + " year's old."
+            })
+        }
+    </script>
+</body>
+</html>
