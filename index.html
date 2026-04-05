@@ -331,6 +331,86 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
   .cols-2-1{grid-template-columns:1fr}
   .cols-1-1-2{grid-template-columns:1fr 1fr}
 }
+
+/* ── API URL Config Modal ───────────────────── */
+#url-modal-backdrop{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(15,23,42,0.55);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.2s ease;
+}
+#url-modal-backdrop.show{opacity:1;pointer-events:all}
+#url-modal{
+  background:var(--card);border-radius:14px;
+  border:1px solid var(--border);
+  box-shadow:0 20px 60px rgba(0,0,0,0.18);
+  padding:28px 28px 24px;
+  width:100%;max-width:460px;
+  transform:translateY(12px);
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+#url-modal-backdrop.show #url-modal{transform:translateY(0)}
+.modal-icon{font-size:28px;margin-bottom:10px}
+.modal-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-0.02em}
+.modal-sub{font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:20px}
+.modal-label{font-size:11px;font-weight:700;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+.modal-input{
+  width:100%;padding:10px 14px;border-radius:8px;
+  border:1.5px solid var(--border);font-family:inherit;font-size:13px;
+  color:var(--text);background:var(--bg);
+  transition:border-color 0.15s;outline:none;
+  font-variant-numeric:tabular-nums;
+}
+.modal-input:focus{border-color:var(--primary);background:#fff}
+.modal-input.error{border-color:var(--red)!important;background:var(--red-bg)}
+.modal-hint{font-size:11px;color:var(--text-3);margin-top:6px;line-height:1.5}
+.modal-hint code{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;padding:1px 5px;font-size:10px;
+  font-family:'Courier New',monospace;color:var(--primary);
+}
+.modal-error{font-size:11px;color:var(--red);font-weight:600;margin-top:5px;display:none}
+.modal-error.show{display:block}
+.modal-actions{display:flex;gap:8px;margin-top:20px}
+.modal-save{
+  flex:1;padding:10px;border-radius:8px;border:none;
+  background:var(--primary);color:#fff;font-family:inherit;
+  font-size:13px;font-weight:700;cursor:pointer;
+  transition:all 0.15s;
+}
+.modal-save:hover{background:#0558d4}
+.modal-cancel{
+  padding:10px 18px;border-radius:8px;
+  border:1.5px solid var(--border);background:transparent;
+  color:var(--text-2);font-family:inherit;font-size:13px;
+  font-weight:600;cursor:pointer;transition:all 0.15s;
+}
+.modal-cancel:hover{border-color:var(--border-2);color:var(--text)}
+.modal-status{
+  margin-top:12px;font-size:11px;font-weight:600;
+  padding:7px 10px;border-radius:7px;display:none;
+  align-items:center;gap:6px;
+}
+.modal-status.testing{display:flex;background:var(--orange-bg);color:var(--orange)}
+.modal-status.success{display:flex;background:var(--green-bg); color:var(--green)}
+.modal-status.fail   {display:flex;background:var(--red-bg);   color:var(--red)}
+
+/* ── Change URL button in sidebar footer ────── */
+.sb-url-btn{
+  display:flex;align-items:center;gap:7px;
+  width:100%;margin-top:8px;padding:7px 10px;
+  border-radius:7px;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);
+  color:rgba(127,163,196,0.7);
+  font-size:11px;font-weight:500;font-family:inherit;
+  cursor:pointer;transition:all 0.15s;text-align:left;
+}
+.sb-url-btn:hover{background:rgba(255,255,255,0.07);color:#c8ddf0;border-color:rgba(255,255,255,0.15)}
+.sb-url-dot{width:5px;height:5px;border-radius:50%;background:rgba(127,163,196,0.5);flex-shrink:0}
+.sb-url-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-url-edit{font-size:9px;opacity:0.6;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -379,6 +459,11 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
           <div class="sb-esp-pkt" id="sb-esp-pkt">No data received</div>
         </div>
       </div>
+      <button class="sb-url-btn" onclick="openUrlModal(false)" title="Change API server URL">
+        <div class="sb-url-dot"></div>
+        <span class="sb-url-text" id="sb-url-display">localhost:3000</span>
+        <span class="sb-url-edit">✎ edit</span>
+      </button>
     </div>
   </aside>
 
@@ -806,6 +891,42 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
   </main>
 </div>
 
+<!-- ═══ API URL CONFIG MODAL ═══ -->
+<div id="url-modal-backdrop">
+  <div id="url-modal">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div class="modal-icon">🔗</div>
+      <button onclick="closeUrlModal()" id="modal-close-x" title="Close"
+        style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-3);line-height:1;padding:2px 4px;border-radius:5px;transition:all 0.15s"
+        onmouseover="this.style.background='var(--bg)';this.style.color='var(--text)'"
+        onmouseout="this.style.background='none';this.style.color='var(--text-3)'">✕</button>
+    </div>
+    <div class="modal-title">API Server URL</div>
+    <div class="modal-sub" id="modal-sub-text">
+      Enter your Cloudflare Tunnel URL (or <code>http://localhost:3000</code> for local use). This is saved in your browser and won't need to be re-entered.
+    </div>
+    <div class="modal-label">Server URL</div>
+    <input
+      class="modal-input" id="modal-url-input"
+      type="url" spellcheck="false" autocomplete="off"
+      placeholder="https://your-tunnel.trycloudflare.com"
+    />
+    <div class="modal-error" id="modal-error">Please enter a valid URL starting with http:// or https://</div>
+    <div class="modal-hint">
+      Examples:<br>
+      <code>https://abc-xyz.trycloudflare.com</code> — Cloudflare Tunnel<br>
+      <code>http://localhost:3000</code> — Local development
+    </div>
+    <div class="modal-status" id="modal-status">
+      <span id="modal-status-text">Testing connection...</span>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveUrlFromModal()">Save &amp; Connect</button>
+      <button class="modal-cancel" id="modal-cancel-btn" onclick="closeUrlModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -813,6 +934,142 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
    PROJECT SOLARIS — Dashboard JavaScript
 ═══════════════════════════════════════════════════════════ */
 'use strict';
+
+/* ════════════════════════════════════════════════════════
+   ▶  API BASE URL
+   ─────────────────────────────────────────────────────────
+   Change this one variable to point to your server.
+   It is also stored in localStorage so users only need
+   to enter it once via the on-page URL configurator.
+════════════════════════════════════════════════════════ */
+const DEFAULT_API_BASE = 'http://localhost:3000';
+
+// Load from localStorage if previously saved, else use default
+let API_BASE = (localStorage.getItem('solaris_api_base') || DEFAULT_API_BASE).replace(/\/$/, '');
+
+/* ════════════════════════════════════════════════════════
+   API FETCH WRAPPER
+   All fetch calls go through here so failures are caught
+   centrally and the URL config modal is shown.
+════════════════════════════════════════════════════════ */
+let _connectionFailed = false;
+
+async function apiFetch(path, options = {}) {
+  const url = `${API_BASE}${path}`;
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _connectionFailed = false;
+    return res;
+  } catch (err) {
+    // Only open the modal if it's a network/connectivity failure
+    // (not a 4xx/5xx from a reachable server)
+    const isNetworkError = (err instanceof TypeError) || err.message.startsWith('HTTP 5');
+    if (isNetworkError && !_connectionFailed) {
+      _connectionFailed = true;
+      openUrlModal(true); // true = triggered automatically by connection failure
+    }
+    throw err;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   URL CONFIG MODAL
+════════════════════════════════════════════════════════ */
+function openUrlModal(isAutoTriggered = false) {
+  const backdrop  = document.getElementById('url-modal-backdrop');
+  const input     = document.getElementById('modal-url-input');
+  const subText   = document.getElementById('modal-sub-text');
+  const cancelBtn = document.getElementById('modal-cancel-btn');
+  const errEl     = document.getElementById('modal-error');
+  const statusEl  = document.getElementById('modal-status');
+
+  input.value = API_BASE;
+  input.classList.remove('error');
+  errEl.classList.remove('show');
+  statusEl.className = 'modal-status';
+
+  if (isAutoTriggered) {
+    subText.innerHTML = `<strong style="color:var(--red)">⚠ Cannot reach the server.</strong><br>
+      The dashboard tried to connect to <code style="font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'Courier New',monospace;color:var(--red)">${API_BASE}</code> and got no response.
+      <br><br>Enter your Cloudflare Tunnel URL or <code style="font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'Courier New',monospace;color:var(--primary)">http://localhost:3000</code> for local use.`;
+  } else {
+    subText.innerHTML = `Enter your Cloudflare Tunnel URL or <code style="font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'Courier New',monospace;color:var(--primary)">http://localhost:3000</code> for local use. Saved in your browser.`;
+  }
+
+  backdrop.classList.add('show');
+  setTimeout(() => input.focus(), 250);
+
+  // Allow Enter key to save
+  input.onkeydown = e => { if (e.key === 'Enter') saveUrlFromModal(); };
+}
+
+function closeUrlModal() {
+  document.getElementById('url-modal-backdrop').classList.remove('show');
+}
+
+async function saveUrlFromModal() {
+  const input    = document.getElementById('modal-url-input');
+  const errEl    = document.getElementById('modal-error');
+  const statusEl = document.getElementById('modal-status');
+  const stText   = document.getElementById('modal-status-text');
+  const saveBtn  = document.querySelector('.modal-save');
+
+  // Validate
+  let url = input.value.trim().replace(/\/$/, '');
+  if (!url || !/^https?:\/\/.+/.test(url)) {
+    input.classList.add('error');
+    errEl.classList.add('show');
+    return;
+  }
+  input.classList.remove('error');
+  errEl.classList.remove('show');
+
+  // Test connection
+  statusEl.className = 'modal-status testing';
+  stText.textContent = '⏳ Testing connection to server...';
+  saveBtn.disabled   = true;
+  saveBtn.textContent = 'Testing...';
+
+  try {
+    const res = await fetch(`${url}/api/status`, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) throw new Error(`Server responded with HTTP ${res.status}`);
+
+    // ✅ Success
+    statusEl.className = 'modal-status success';
+    stText.textContent = '✅ Connected! Saving URL...';
+
+    API_BASE = url;
+    localStorage.setItem('solaris_api_base', url);
+    updateSidebarUrlDisplay();
+    _connectionFailed = false;
+
+    setTimeout(() => {
+      closeUrlModal();
+      toast('🔗 API URL saved — reconnecting...');
+      fetchStatus();
+    }, 800);
+
+  } catch (e) {
+    // ❌ Failed
+    statusEl.className = 'modal-status fail';
+    stText.textContent = `❌ Could not reach server: ${e.message}`;
+  } finally {
+    saveBtn.disabled    = false;
+    saveBtn.textContent = 'Save & Connect';
+  }
+}
+
+function updateSidebarUrlDisplay() {
+  const el = document.getElementById('sb-url-display');
+  if (!el) return;
+  try {
+    const parsed = new URL(API_BASE);
+    el.textContent = parsed.hostname + (parsed.port ? ':' + parsed.port : '');
+  } catch {
+    el.textContent = API_BASE;
+  }
+}
 
 // ── Chart.js global defaults ─────────────────────────────
 Chart.defaults.font.family  = "'Plus Jakarta Sans', sans-serif";
@@ -917,31 +1174,13 @@ function switchCurrChart(src, btn) {
 /* ════════════════════════════════════════════════════════
    DATA FETCH & UPDATE
 ════════════════════════════════════════════════════════ */
-let lastDataTime = Date.now();
-const OFFLINE_THRESHOLD = 5000;
-
 async function fetchStatus() {
   try {
-    const res = await fetch('/api/status');
-    if (!res.ok) throw new Error('bad response');
-
+    const res = await apiFetch('/api/status');
     const d = await res.json();
-
-    lastDataTime = Date.now();
-
     state.lastStatus = d;
     updateAll(d);
-
-  } catch {
-    if (Date.now() - lastDataTime > OFFLINE_THRESHOLD) {
-      updateSidebar({
-        esp32_online: false,
-        packets_rx: state.lastStatus?.packets_rx || 0
-      });
-    }
-  }
-
-  scheduleNextPoll();
+  } catch { /* connection error handled by apiFetch */ }
 }
 
 function updateAll(d) {
@@ -973,9 +1212,7 @@ function updateSidebar(d) {
   const label = $('sb-esp-label');
   const pkt   = $('sb-esp-pkt');
   dot.className = 'sb-esp-dot ' + (d.esp32_online ? 'online' : 'offline');
-  label.textContent = d.esp32_online
-  ? 'ESP32 Online'
-  : `Offline (last seen ${Math.floor((Date.now()-lastDataTime)/1000)}s ago)`;
+  label.textContent = d.esp32_online ? 'ESP32 Online' : 'ESP32 Offline';
   pkt.textContent   = `${d.packets_rx} packets received`;
 }
 
@@ -1124,8 +1361,8 @@ function initHourlyChart() {
 async function refreshAnalytics() {
   try {
     const [hourly, savings] = await Promise.all([
-      fetch('/api/analytics/hourly').then(r => r.json()),
-      fetch('/api/analytics/savings-trend').then(r => r.json()),
+      apiFetch('/api/analytics/hourly').then(r => r.json()),
+      apiFetch('/api/analytics/savings-trend').then(r => r.json()),
     ]);
 
     if (charts.hourly && hourly.length) {
@@ -1368,8 +1605,8 @@ function updateEnergyBreakdown(d) {
 async function refreshLogs() {
   try {
     const [logs, comps] = await Promise.all([
-      fetch('/api/logs?limit=100').then(r => r.json()),
-      fetch('/api/components').then(r => r.json()),
+      apiFetch('/api/logs?limit=100').then(r => r.json()),
+      apiFetch('/api/components').then(r => r.json()),
     ]);
     renderLogs(logs);
     renderComponents(comps);
@@ -1418,7 +1655,7 @@ function renderComponents(comps) {
 ════════════════════════════════════════════════════════ */
 async function setMode(mode) {
   try {
-    await fetch('/api/command', {
+    await apiFetch('/api/command', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ mode }),
     });
@@ -1431,7 +1668,7 @@ async function setMode(mode) {
 
 async function forceRelay(rs) {
   try {
-    await fetch('/api/command', {
+    await apiFetch('/api/command', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ mode: 'MANUAL', relay_state: rs }),
     });
@@ -1442,7 +1679,7 @@ async function forceRelay(rs) {
 async function resetData() {
   if (!confirm('Reset all session counters? This clears RAM totals (DB logs are kept).')) return;
   try {
-    await fetch('/api/reset', { method: 'POST' });
+    await apiFetch('/api/reset', { method: 'POST' });
     toast('🔄 Session counters reset');
   } catch { toast('❌ Reset failed'); }
 }
@@ -1478,7 +1715,7 @@ async function generateExcelReport() {
   btn.disabled = true;
   btn.textContent = '⏳  Fetching data...';
   try {
-    const r    = await fetch(`/api/report?hours=${state.reportPeriod}`);
+    const r    = await apiFetch(`/api/report?hours=${state.reportPeriod}`);
     const data = await r.json();
     buildExcel(data);
     toast('✅ Excel report downloaded!');
@@ -1566,6 +1803,9 @@ setInterval(() => {
    BOOT
 ════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
+  // Show current API URL in sidebar footer
+  updateSidebarUrlDisplay();
+
   // Init overview charts immediately
   initSparkline();
   initDonut();
