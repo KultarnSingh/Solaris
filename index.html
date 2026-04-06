@@ -1212,9 +1212,7 @@ function updateSidebar(d) {
   const label = $('sb-esp-label');
   const pkt   = $('sb-esp-pkt');
   dot.className = 'sb-esp-dot ' + (d.esp32_online ? 'online' : 'offline');
-  label.textContent = isOnline 
-  ? 'ESP32 Online' 
-  : `Offline  (last seen ${Math.floor((Date.now()-lastDataTime)/1000)}s ago)`;
+  label.textContent = d.esp32_online ? 'ESP32 Online' : 'ESP32 Offline';
   pkt.textContent   = `${d.packets_rx} packets received`;
 }
 
