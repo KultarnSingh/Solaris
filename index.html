@@ -1,16 +1,19 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="#1b2a3b" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
 <title>Project Solaris — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ── Variables ─────────────────────────────── */
 :root {
   --sidebar-w     : 220px;
-  --topbar-h      : 58px;
+  --topbar-h      : 60px;
   --sidebar-bg    : #1b2a3b;
   --sidebar-hover : #243649;
   --sidebar-active: #2d4360;
@@ -51,6 +54,7 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(
 
 /* ── App Shell ─────────────────────────────── */
 #app{display:flex;height:100vh;overflow:hidden}
+@media(max-width:768px){#app{height:calc(100vh - 0px);height:100dvh}}
 
 /* ── Sidebar ───────────────────────────────── */
 #sidebar{
@@ -111,10 +115,22 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(
 
 /* ── Topbar ────────────────────────────────── */
 #topbar{
-  height:var(--topbar-h);flex-shrink:0;
-  background:var(--card);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 22px;gap:14px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.05);z-index:5;
+  min-height: var(--topbar-h);
+height: auto;
+  flex-shrink:0;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;              /* 🔥 KEY FIX */
+
+  padding:8px 12px;            /* smaller for mobile */
+  gap:8px;
+
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+  z-index:5;
 }
 .tb-breadcrumb{display:flex;align-items:center;gap:6px;flex:1}
 .tb-project{font-size:11px;color:var(--text-3);font-weight:500}
@@ -134,7 +150,11 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(
 @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:0.4}}
 
 /* Mode controls */
-.tb-controls{display:flex;align-items:center;gap:6px}
+.tb-controls{
+  display:flex;
+  flex-wrap:wrap;      /* 🔥 prevents overflow */
+  gap:15px;
+}
 .ctrl-btn{
   padding:5px 13px;border-radius:7px;font-size:12px;font-weight:600;
   border:1.5px solid var(--border);background:transparent;color:var(--text-2);
@@ -154,6 +174,14 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(
 .force-grid {background:var(--red-bg);  border-color:#fecaca;color:var(--red)}
 .force-grid:hover{background:#fecaca}
 .tb-time{font-size:12px;color:var(--text-3);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+
+/* Desktop: ctrl-btn aliases kept for JS class toggling */
+.ctrl-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
 
 /* ── Sections ──────────────────────────────── */
 #content{flex:1;overflow-y:auto;padding:18px 20px 24px}
@@ -332,6 +360,182 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
   .cols-1-1-2{grid-template-columns:1fr 1fr}
 }
 
+/* ═══════════════════════════════════════════════
+   MOBILE — Android WebView / Phone Screens
+   Target: 360–430 px wide (compact phones)
+═══════════════════════════════════════════════ */
+
+/* Bottom nav — hidden on desktop */
+#bottom-nav{display:none}
+
+@media(max-width:768px){
+
+  /* ── Layout shell ── */
+  :root{
+    --topbar-h: 50px;
+    --sidebar-w: 0px;
+  }
+  html,body{font-size:13px}
+  #app{flex-direction:column}
+
+  /* ── Hide desktop sidebar ── */
+  #sidebar{display:none}
+  .tb-time{display:none}
+  /* Force buttons: icon-only on mobile (text already stripped in HTML) */
+  .force-btn{padding:5px 9px;font-size:14px}
+
+  /* ── Scrollable content area ── */
+  #content{
+    padding:10px 10px 80px;
+    /* Bottom padding for bottom nav + safe area */
+    padding-bottom:calc(64px + env(safe-area-inset-bottom));
+  }
+
+  /* ── Section titles ── */
+  .section-title{font-size:15px;margin-bottom:12px}
+  .section-sub{display:block;font-size:11px}
+
+  /* ── ALL grid columns → single column ── */
+  .cols-4,
+  .cols-3,
+  .cols-2,
+  .cols-2-1,
+  .cols-1-1-2{grid-template-columns:1fr}
+  .col-span-2,.col-span-3{grid-column:span 1}
+  .row{gap:10px;margin-bottom:10px}
+
+  /* ── Cards ── */
+  .card-body{padding:12px}
+  .card-header{padding:12px 14px 8px}
+  .mc{padding:14px}
+
+  /* ── Metric card values — slightly smaller ── */
+  .mc-value{font-size:24px}
+  .fin-amount{font-size:22px}
+
+  /* ── Charts — shorter on phones ── */
+  .chart-body{height:170px}
+  .chart-body.tall{height:190px}
+  .chart-body.short{height:140px}
+
+  /* ── Tables — horizontal scroll with touch ── */
+  .tbl-wrap{-webkit-overflow-scrolling:touch;overflow-x:auto}
+  table{min-width:520px}
+  thead th,tbody td{padding:7px 10px}
+
+  /* ── Report section ── */
+  .report-options{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+  .sheets-grid{grid-template-columns:repeat(2,1fr)}
+  .report-card{padding:14px;gap:14px}
+
+  /* ── Toast — center bottom, above nav ── */
+  #toast{
+    right:50%;transform:translateX(50%) translateY(80px);
+    bottom:calc(68px + env(safe-area-inset-bottom));
+    font-size:12px;padding:9px 16px;width:auto;max-width:90vw;text-align:center;
+  }
+  #toast.show{transform:translateX(50%) translateY(0)}
+
+  /* ── Modal — full-width on small screens ── */
+  #url-modal{max-width:92vw;padding:20px 18px 18px}
+  .modal-title{font-size:15px}
+
+  /* ── Source badge ── */
+  .source-badge{padding:4px 9px;font-size:10px}
+
+  /* ── Energy rows ── */
+  .energy-lbl{font-size:11px}
+  .energy-val{font-size:12px}
+
+  /* ── Bottom Nav bar ── */
+  #bottom-nav{
+    display:flex;
+    position:fixed;bottom:0;left:0;right:0;
+    height:calc(56px + env(safe-area-inset-bottom));
+    padding-bottom:env(safe-area-inset-bottom);
+    background:var(--sidebar-bg);
+    border-top:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 -2px 16px rgba(0,0,0,0.20);
+    z-index:50;
+    align-items:stretch;
+    justify-content:space-around;
+  }
+  .bn-item{
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    gap:3px;cursor:pointer;
+    border:none;background:transparent;
+    color:var(--sidebar-text);font-family:inherit;
+    font-size:9px;font-weight:600;letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+    transition:color 0.15s;
+    min-width:0;
+  }
+  .bn-item.active{color:#fff}
+  .bn-item.active .bn-icon{
+    background:var(--sidebar-active);
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+  }
+  .bn-icon{
+    width:34px;height:28px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;transition:all 0.15s;
+  }
+  .bn-label{font-size:9px;letter-spacing:0.03em}
+
+  /* Tap feedback */
+  .bn-item:active .bn-icon{transform:scale(0.90)}
+
+  /* Show hamburger menu button in topbar on mobile */
+  #topbar-menu-btn{display:flex}
+}
+
+/* Extra-small phones (≤380px) */
+@media(max-width:380px){
+  #tb-row1{padding:0 10px}
+  #tb-row2{padding:5px 10px;gap:5px}
+  #content{padding:8px 8px calc(64px + env(safe-area-inset-bottom))}
+  .mc-value{font-size:21px}
+  .mode-btn{padding:4px 8px;font-size:11px}
+  .tb-brand-name{font-size:13px}
+}
+
+/* ── Topbar right cluster: ESP chip + settings ── */
+#tb-esp-chip{
+  display:none; /* shown on mobile via media query below */
+  align-items:center;gap:5px;
+  padding:4px 9px;border-radius:100px;
+  background:rgba(0,0,0,0.04);border:1px solid var(--border);
+  cursor:pointer;transition:all 0.18s;
+  -webkit-tap-highlight-color:transparent;flex-shrink:0;
+}
+#tb-esp-chip:active{opacity:0.75}
+.tb-esp-dot{width:7px;height:7px;border-radius:50%;background:#475569;flex-shrink:0;transition:all 0.3s}
+.tb-esp-dot.online{background:#22c55e;box-shadow:0 0 5px #22c55e}
+.tb-esp-dot.offline{background:#ef4444;animation:blink 1s step-end infinite}
+.tb-esp-label{font-size:10px;font-weight:700;color:var(--text-2);white-space:nowrap}
+
+#tb-settings-btn{
+  display:none; /* shown on mobile via media query below */
+  align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:8px;
+  border:1.5px solid var(--border);background:transparent;
+  color:var(--text-2);cursor:pointer;font-size:16px;
+  flex-shrink:0;transition:all 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+#tb-settings-btn:active{transform:scale(0.90);background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+
+@media(max-width:768px){
+  #tb-esp-chip{display:flex}
+  #tb-settings-btn{display:flex}
+  /* Desktop breadcrumb hidden — brand takes its place */
+  .tb-brand{display:flex}
+}
+
 /* ── API URL Config Modal ───────────────────── */
 #url-modal-backdrop{
   position:fixed;inset:0;z-index:200;
@@ -411,524 +615,576 @@ tbody td{padding:8px 12px;color:var(--text-2);font-variant-numeric:tabular-nums;
 .sb-url-dot{width:5px;height:5px;border-radius:50%;background:rgba(127,163,196,0.5);flex-shrink:0}
 .sb-url-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-url-edit{font-size:9px;opacity:0.6;flex-shrink:0}
+/* ✅ ADD IT HERE (at the end) */
+@media (max-width: 600px){
+  #topbar{
+    flex-direction:row;
+    align-items:stretch;
+  }
+
+  .tb-controls{
+    width:100%;
+    justify-content:space-between;
+  }
+
+  .ctrl-btn{
+    flex:1;
+    font-size:12px;
+    padding:6px;
+  }
+}
 </style>
 </head>
 <body>
-
 <div id="app">
-  <!-- ═══ SIDEBAR ═══ -->
-  <aside id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-logo-icon">☀</div>
-      <div>
-        <div class="sb-logo-txt">SOLARIS</div>
-        <div class="sb-logo-sub">IIoT MONITOR</div>
-      </div>
-    </div>
-
-    <nav id="sb-nav">
-      <div class="nav-section-label">Monitor</div>
-      <button class="nav-item active" onclick="showSection('overview',this)">
-        <span class="nav-icon">◫</span> Overview
-      </button>
-      <button class="nav-item" onclick="showSection('analytics',this)">
-        <span class="nav-icon">〜</span> Analytics
-      </button>
-
-      <div class="nav-sep"></div>
-      <div class="nav-section-label">Data</div>
-      <button class="nav-item" onclick="showSection('logs',this)">
-        <span class="nav-icon">≡</span> System Logs
-      </button>
-      <button class="nav-item" onclick="showSection('financial',this)">
-        <span class="nav-icon">◈</span> Financial
-      </button>
-
-      <div class="nav-sep"></div>
-      <div class="nav-section-label">Export</div>
-      <button class="nav-item" onclick="showSection('report',this)">
-        <span class="nav-icon">↧</span> Report
-      </button>
-    </nav>
-
-    <div class="sb-footer">
-      <div class="sb-esp-badge">
-        <div class="sb-esp-dot offline" id="sb-esp-dot"></div>
-        <div>
-          <div class="sb-esp-text" id="sb-esp-label">ESP32 Offline</div>
-          <div class="sb-esp-pkt" id="sb-esp-pkt">No data received</div>
-        </div>
-      </div>
-      <button class="sb-url-btn" onclick="openUrlModal(false)" title="Change API server URL">
-        <div class="sb-url-dot"></div>
-        <span class="sb-url-text" id="sb-url-display">localhost:3000</span>
-        <span class="sb-url-edit">✎ edit</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- ═══ MAIN ═══ -->
-  <main id="main">
-    <!-- Top bar -->
-    <div id="topbar">
-      <div class="tb-breadcrumb">
-        <span class="tb-project">Project Solaris</span>
-        <span class="tb-sep">/</span>
-        <span class="tb-section" id="tb-section-name">Overview</span>
-      </div>
-
-      <div id="source-badge" class="source-badge grid">
-        <div class="badge-dot"></div>
-        <span id="source-text">GRID</span>
-      </div>
-
-      <div class="tb-controls">
-        <button class="ctrl-btn active-auto" id="btn-auto"   onclick="setMode('AUTO')">AUTO</button>
-        <button class="ctrl-btn"             id="btn-manual" onclick="setMode('MANUAL')">MANUAL</button>
-        <div class="force-wrap" id="force-wrap">
-          <button class="force-btn force-solar" onclick="forceRelay(0)">☀ Solar</button>
-          <button class="force-btn force-grid"  onclick="forceRelay(1)">⚡ Grid</button>
-        </div>
-      </div>
-
-      <button onclick="resetData()" style="background:none;border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:11px;color:var(--text-3);cursor:pointer;font-family:inherit;transition:all 0.15s" onmouseover="this.style.borderColor='var(--red-dim)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-3)'">↺ Reset</button>
-      <div class="tb-time" id="tb-time">--:--:--</div>
-    </div>
-
-    <!-- Sections -->
-    <div id="content">
-
-      <!-- ══ OVERVIEW ══ -->
-      <section id="s-overview" class="section active">
-        <div class="section-title">Overview <span class="section-sub">Real-time monitoring dashboard</span></div>
-
-        <!-- Metric Cards -->
-        <div class="row cols-4">
-
-          <!-- Power -->
-          <div class="card mc blue">
-            <div class="mc-top">
-              <div class="mc-icon blue">⚡</div>
-            </div>
-            <div class="card-label">Active Power</div>
-            <div class="mc-value" id="mc-power">--</div>
-            <div class="mc-unit">Watts</div>
-            <div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-power" style="background:var(--primary);width:0%"></div></div>
-          </div>
-
-          <!-- Voltage with toggle -->
-          <div class="card mc orange">
-            <div class="mc-top">
-              <div class="mc-icon orange">〜</div>
-              <div class="src-toggle" id="volt-toggle">
-                <button class="st-btn active orange" onclick="switchMetric('volt','grid',this)">Grid</button>
-                <button class="st-btn"               onclick="switchMetric('volt','solar',this)">Solar</button>
-              </div>
-            </div>
-            <div class="card-label" id="volt-label">Grid Voltage</div>
-            <div class="mc-value" id="mc-volt">--</div>
-            <div class="mc-unit">Volts</div>
-            <div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-volt" style="background:var(--orange-dim);width:0%"></div></div>
-          </div>
-
-          <!-- Current with toggle -->
-          <div class="card mc teal">
-            <div class="mc-top">
-              <div class="mc-icon teal">∿</div>
-              <div class="src-toggle" id="curr-toggle">
-                <button class="st-btn active" onclick="switchMetric('curr','grid',this)">Grid</button>
-                <button class="st-btn"        onclick="switchMetric('curr','solar',this)">Solar</button>
-              </div>
-            </div>
-            <div class="card-label" id="curr-label">Grid Current</div>
-            <div class="mc-value" id="mc-curr">--</div>
-            <div class="mc-unit">Amps</div>
-            <div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-curr" style="background:var(--teal);width:0%"></div></div>
-          </div>
-
-          <!-- Source Status -->
-          <div class="card mc">
-            <div class="mc-top">
-              <div class="mc-icon green">◎</div>
-            </div>
-            <div class="card-label">Active Source</div>
-            <div class="mc-value src-status-big" id="mc-source">--</div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-              <span class="src-mode-pill" id="mc-mode-pill">AUTO</span>
-              <span class="src-pkt" id="mc-pkt">0 pkts</span>
-            </div>
-          </div>
-
-        </div><!-- /cols-4 -->
-
-        <!-- Charts row: Sparkline + Doughnut -->
-        <div class="row cols-2-1">
-          <!-- Sparkline -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">⚡ Real-Time Power Demand</div>
-                <div class="ch-sub">Last 50 readings • updates every ~2s</div>
-              </div>
-            </div>
-            <div class="chart-body tall"><canvas id="chart-sparkline"></canvas></div>
-          </div>
-
-          <!-- Doughnut -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">◎ Source Split</div>
-                <div class="ch-sub">Session distribution</div>
-              </div>
-            </div>
-            <div class="chart-body" style="height:200px;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-donut" style="max-height:180px;max-width:180px"></canvas>
-            </div>
-            <div style="display:flex;justify-content:center;gap:16px;padding:0 14px 12px">
-              <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--orange)">
-                <div style="width:8px;height:8px;border-radius:50%;background:var(--orange-dim)"></div>
-                <span id="donut-solar-pct">0%</span> Solar
-              </div>
-              <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--red)">
-                <div style="width:8px;height:8px;border-radius:50%;background:var(--red-dim)"></div>
-                <span id="donut-grid-pct">0%</span> Grid
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══ ANALYTICS ══ -->
-      <section id="s-analytics" class="section">
-        <div class="section-title">Analytics <span class="section-sub">24-hour trend charts and breakdowns</span></div>
-
-        <!-- Row 1: Hourly bar + Voltage trend -->
-        <div class="row cols-2-1">
-          <!-- Hourly Energy Bar -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">☀ Hourly Energy Production</div>
-                <div class="ch-sub">Solar vs Grid kWh per hour (last 24h)</div>
-              </div>
-            </div>
-            <div class="chart-body tall"><canvas id="chart-hourly"></canvas></div>
-          </div>
-
-          <!-- Voltage trend with switch -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">〜 Voltage Trend</div>
-              </div>
-              <div class="src-toggle" id="volt-chart-toggle">
-                <button class="st-btn active orange" onclick="switchVoltChart('grid',this)">Grid</button>
-                <button class="st-btn"               onclick="switchVoltChart('solar',this)">Solar</button>
-              </div>
-            </div>
-            <div class="chart-body tall"><canvas id="chart-voltage"></canvas></div>
-          </div>
-        </div>
-
-        <!-- Row 2: Current area + Savings trend -->
-        <div class="row cols-2">
-
-          <!-- Current Trend with switch -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">∿ Current Trend</div>
-                <div class="ch-sub">Amp readings over time</div>
-              </div>
-              <div class="src-toggle" id="curr-chart-toggle">
-                <button class="st-btn active" onclick="switchCurrChart('grid',this)">Grid</button>
-                <button class="st-btn"        onclick="switchCurrChart('solar',this)">Solar</button>
-              </div>
-            </div>
-            <div class="chart-body"><canvas id="chart-current"></canvas></div>
-          </div>
-
-          <!-- Savings trend -->
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">◈ Cumulative Savings</div>
-                <div class="ch-sub">₹ saved vs full grid use (24h rolling)</div>
-              </div>
-            </div>
-            <div class="chart-body"><canvas id="chart-savings"></canvas></div>
-          </div>
-
-        </div>
-
-        <!-- Row 3: Power Gauge Donut -->
-        <div class="row cols-3">
-          <div class="card">
-            <div class="ch-header"><div class="ch-title">⚡ Power Gauge (Live)</div></div>
-            <div class="chart-body short" style="height:140px;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-gauge" style="max-height:130px;max-width:220px"></canvas>
-            </div>
-            <div style="text-align:center;padding-bottom:10px;font-size:10px;color:var(--text-3)">0 W — 3000 W max</div>
-          </div>
-          <div class="card col-span-2">
-            <div class="ch-header">
-              <div class="ch-title">☀ Energy Mix (Session)</div>
-              <div class="ch-sub">kWh breakdown</div>
-            </div>
-            <div class="card-body">
-              <div id="energy-breakdown">
-                <div class="energy-row">
-                  <span class="energy-lbl" style="color:var(--orange)">☀ Solar</span>
-                  <div style="flex:2;margin:0 8px"><div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)"><div class="energy-bar-inline" id="ebar-solar" style="background:var(--orange-dim);width:0%"></div></div></div>
-                  <span class="energy-val" id="eval-solar">0.000</span><span class="energy-pct" id="epct-solar">0%</span>
-                </div>
-                <div class="energy-row">
-                  <span class="energy-lbl" style="color:var(--red)">⚡ Grid</span>
-                  <div style="flex:2;margin:0 8px"><div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)"><div class="energy-bar-inline" id="ebar-grid" style="background:var(--red-dim);width:0%"></div></div></div>
-                  <span class="energy-val" id="eval-grid">0.000</span><span class="energy-pct" id="epct-grid">100%</span>
-                </div>
-                <div class="energy-row" style="margin-top:4px;padding-top:8px">
-                  <span class="energy-lbl" style="font-weight:700;color:var(--text)">Total</span>
-                  <div style="flex:2"></div>
-                  <span class="energy-val" id="eval-total">0.000</span><span class="energy-pct">kWh</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ══ SYSTEM LOGS ══ -->
-      <section id="s-logs" class="section">
-        <div class="section-title">System Logs <span class="section-sub">Hardware status and energy event log</span></div>
-
-        <!-- Component Status -->
-        <div class="row">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🔧 Component Status</div>
-              <button onclick="refreshLogs()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;font-family:inherit">↻ Refresh</button>
-            </div>
-            <div class="tbl-wrap">
-              <table>
-                <thead><tr><th>Component</th><th>Model / Spec</th><th>Status</th><th>Last Seen</th></tr></thead>
-                <tbody id="tb-components"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Energy Logs -->
-        <div class="row">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">📋 Energy Log — Recent Entries</div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:11px;color:var(--text-3)" id="log-count">0 records</span>
-                <button onclick="refreshLogs()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;font-family:inherit">↻ Refresh</button>
-              </div>
-            </div>
-            <div class="tbl-wrap" style="max-height:360px;overflow-y:auto">
-              <table>
-                <thead><tr><th>#</th><th>Timestamp</th><th>Source</th><th>Solar V</th><th>Solar I</th><th>Grid V</th><th>Grid I</th><th>Power (W)</th><th>Saved (₹)</th></tr></thead>
-                <tbody id="tb-logs"><tr><td colspan="9" class="empty-state">No data yet — start the simulator!</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ══ FINANCIAL ══ -->
-      <section id="s-financial" class="section">
-        <div class="section-title">Financial <span class="section-sub">Cost analysis and savings tracking</span></div>
-
-        <div class="row cols-3">
-          <!-- Savings -->
-          <div class="card fin-card">
-            <div class="fin-icon" style="background:var(--green-bg)">💰</div>
-            <div class="fin-body">
-              <div class="fin-label">Total Savings</div>
-              <div class="fin-amount" style="color:var(--green)">
-                <span class="fin-currency">₹</span><span id="fin-savings">0.00</span>
-              </div>
-              <div class="fin-sub">vs. buying all energy from grid</div>
-            </div>
-          </div>
-
-          <!-- Monthly Bill -->
-          <div class="card fin-card">
-            <div class="fin-icon" style="background:var(--red-bg)">📋</div>
-            <div class="fin-body">
-              <div class="fin-label">Projected Monthly Bill</div>
-              <div class="fin-amount" style="color:var(--red)">
-                <span class="fin-currency">₹</span><span id="fin-bill">0.00</span>
-              </div>
-              <div class="fin-sub">based on today's grid usage × 30 days @ ₹8.50/kWh</div>
-            </div>
-          </div>
-
-          <!-- ROI -->
-          <div class="card" style="padding:18px">
-            <div class="fin-label">Solar Panel ROI Tracker</div>
-            <div class="fin-amount" style="color:var(--primary);margin:6px 0">
-              <span id="fin-roi">0.0000</span><span class="fin-currency">%</span>
-            </div>
-            <div class="roi-bar-wrap">
-              <div class="roi-bar-track"><div class="roi-bar-fill" id="roi-fill" style="width:0%"></div></div>
-              <div class="roi-ticks"><span>₹0</span><span>₹25,000</span><span>₹50,000</span></div>
-            </div>
-            <div class="fin-sub" style="margin-top:4px">Installation cost: ₹50,000 • ₹<span id="fin-saved-abs">0.00</span> recovered</div>
-          </div>
-        </div>
-
-        <!-- Financial chart: savings trend (full width) -->
-        <div class="row">
-          <div class="card">
-            <div class="ch-header">
-              <div>
-                <div class="ch-title">📈 Hourly Savings Trend (Last 24h)</div>
-                <div class="ch-sub">Cumulative ₹ saved from solar generation</div>
-              </div>
-            </div>
-            <div class="chart-body tall"><canvas id="chart-fin-savings"></canvas></div>
-          </div>
-        </div>
-
-        <!-- Rate info card -->
-        <div class="row cols-3">
-          <div class="card" style="padding:14px 16px">
-            <div class="fin-label">Grid Tariff Rate</div>
-            <div style="font-size:22px;font-weight:800;color:var(--text)">₹8.50<span style="font-size:12px;font-weight:500;color:var(--text-3)">/kWh</span></div>
-            <div class="fin-sub">DISCOM unit rate (adjust in server.js)</div>
-          </div>
-          <div class="card" style="padding:14px 16px">
-            <div class="fin-label">Solar Energy (Session)</div>
-            <div style="font-size:22px;font-weight:800;color:var(--orange)"><span id="fin-solar-kwh">0.000</span><span style="font-size:12px;font-weight:500;color:var(--text-3)"> kWh</span></div>
-            <div class="fin-sub">Total energy generated from solar</div>
-          </div>
-          <div class="card" style="padding:14px 16px">
-            <div class="fin-label">Grid Energy (Session)</div>
-            <div style="font-size:22px;font-weight:800;color:var(--red)"><span id="fin-grid-kwh">0.000</span><span style="font-size:12px;font-weight:500;color:var(--text-3)"> kWh</span></div>
-            <div class="fin-sub">Total energy consumed from grid</div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ══ REPORT ══ -->
-      <section id="s-report" class="section">
-        <div class="section-title">Report Generator <span class="section-sub">Export data to Excel (.xlsx)</span></div>
-
-        <div class="row">
-          <div class="card report-card">
-            <div>
-              <div class="card-title" style="margin-bottom:4px">📊 Generate Energy Report</div>
-              <div style="font-size:12px;color:var(--text-2)">Select a time period and click Generate to download a multi-sheet Excel report.</div>
-            </div>
-
-            <!-- Period selector -->
-            <div>
-              <div class="fin-label" style="margin-bottom:8px">Select Period</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="period-btn active" onclick="selectPeriod(1,  this)">Last 1 Hour</button>
-                <button class="period-btn"        onclick="selectPeriod(6,  this)">Last 6 Hours</button>
-                <button class="period-btn"        onclick="selectPeriod(24, this)">Last 24 Hours</button>
-                <button class="period-btn"        onclick="selectPeriod(72, this)">Last 3 Days</button>
-                <button class="period-btn"        onclick="selectPeriod(168,this)">Last 7 Days</button>
-                <button class="period-btn"        onclick="selectPeriod(720,this)">Last 30 Days</button>
-              </div>
-            </div>
-
-            <!-- What's included -->
-            <div>
-              <div class="fin-label" style="margin-bottom:8px">Report includes 4 sheets</div>
-              <div class="sheets-grid">
-                <div class="sheet-card">
-                  <div class="sheet-icon">📊</div>
-                  <div class="sheet-name">Summary</div>
-                  <div class="sheet-desc">Totals, KPIs, metadata</div>
-                </div>
-                <div class="sheet-card">
-                  <div class="sheet-icon">📋</div>
-                  <div class="sheet-name">Energy Logs</div>
-                  <div class="sheet-desc">All sensor readings</div>
-                </div>
-                <div class="sheet-card">
-                  <div class="sheet-icon">📈</div>
-                  <div class="sheet-name">Hourly Summary</div>
-                  <div class="sheet-desc">Aggregated kWh data</div>
-                </div>
-                <div class="sheet-card">
-                  <div class="sheet-icon">🔧</div>
-                  <div class="sheet-name">Components</div>
-                  <div class="sheet-desc">Hardware inventory</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Preview -->
-            <div class="report-preview">
-              <div class="report-preview-title">Report Preview</div>
-              <div class="rp-row"><span class="rp-key">Period</span><span class="rp-val" id="rp-period">Last 1 Hour</span></div>
-              <div class="rp-row"><span class="rp-key">Records (est.)</span><span class="rp-val" id="rp-records">--</span></div>
-              <div class="rp-row"><span class="rp-key">Total Savings</span><span class="rp-val" id="rp-savings">--</span></div>
-              <div class="rp-row"><span class="rp-key">Solar kWh</span><span class="rp-val" id="rp-solar-kwh">--</span></div>
-              <div class="rp-row"><span class="rp-key">Grid kWh</span><span class="rp-val" id="rp-grid-kwh">--</span></div>
-            </div>
-
-            <button class="gen-btn" id="gen-btn" onclick="generateExcelReport()">
-              ↧ &nbsp;Download Excel Report
-            </button>
-          </div>
-        </div>
-
-      </section>
-
-    </div><!-- /content -->
-  </main>
+<!-- ═══ SIDEBAR ═══ -->
+<aside id="sidebar">
+<div class="sb-logo">
+<div class="sb-logo-icon">☀</div>
+<div>
+<div class="sb-logo-txt">SOLARIS</div>
+<div class="sb-logo-sub">IIoT MONITOR</div>
 </div>
+</div>
+<nav id="sb-nav">
+<div class="nav-section-label">Monitor</div>
+<button class="nav-item active" onclick="showSection('overview',this)">
+<span class="nav-icon">◫</span> Overview
+      </button>
+<button class="nav-item" onclick="showSection('analytics',this)">
+<span class="nav-icon">〜</span> Analytics
+      </button>
+<div class="nav-sep"></div>
+<div class="nav-section-label">Data</div>
+<button class="nav-item" onclick="showSection('logs',this)">
+<span class="nav-icon">≡</span> System Logs
+      </button>
+<button class="nav-item" onclick="showSection('financial',this)">
+<span class="nav-icon">◈</span> Financial
+      </button>
+<div class="nav-sep"></div>
+<div class="nav-section-label">Export</div>
+<button class="nav-item" onclick="showSection('report',this)">
+<span class="nav-icon">↧</span> Report
+      </button>
+<button class="nav-item" onclick="showSection('apkdownload',this)">
+<span class="nav-icon">↧</span> Download App
+      </button>
+</nav>
+<div class="sb-footer">
+<div class="sb-esp-badge">
+<div class="sb-esp-dot offline" id="sb-esp-dot"></div>
+<div>
+<div class="sb-esp-text" id="sb-esp-label">ESP32 Offline</div>
+<div class="sb-esp-pkt" id="sb-esp-pkt">No data received</div>
+</div>
+</div>
+<button class="sb-url-btn" onclick="openUrlModal(false)" title="Change API server URL">
+<div class="sb-url-dot"></div>
+<span class="sb-url-text" id="sb-url-display">localhost:3000</span>
+<span class="sb-url-edit">✎ edit</span>
+</button>
+</div>
+</aside>
+<!-- ═══ MAIN ═══ -->
+<main id="main">
+<!-- ═══ TOP BAR (redesigned for mobile) ═══ -->
+  <div id="topbar">
+    <div class="tb-breadcrumb">
+      <span class="tb-project">Project Solaris</span>
+      <span class="tb-sep">/</span>
+      <span class="tb-section" id="tb-section-name">Overview</span>
+    </div>
+
+    <div id="source-badge" class="source-badge grid">
+      <div class="badge-dot"></div>
+      <span id="source-text">GRID</span>
+    </div>
+
+    <div class="tb-controls">
+      <button class="ctrl-btn active-auto" id="btn-auto" onclick="setMode('AUTO')">AUTO</button>
+      <button class="ctrl-btn" id="btn-manual" onclick="setMode('MANUAL')">MANUAL</button>
+      
+      <!-- Force Manual Controls -->
+      <div class="force-wrap" id="force-wrap">
+        <button class="force-btn force-solar" onclick="forceRelay(0)">☀ Solar</button>
+        <button class="force-btn force-grid"  onclick="forceRelay(1)">⚡ Grid</button>
+      </div>
+    </div>
+
+    <div class="tb-time" id="tb-time">--:--:--</div>
+  </div>
+<!-- Sections -->
+<div id="content">
+<!-- ══ OVERVIEW ══ -->
+<section class="section active" id="s-overview">
+<div class="section-title">Overview <span class="section-sub"><br>Real-time monitoring dashboard</span></div>
+<!-- Metric Cards -->
+<div class="row cols-4">
+<!-- Power -->
+<div class="card mc blue">
+<div class="mc-top">
+<div class="mc-icon blue">⚡</div>
+</div>
+<div class="card-label">Active Power</div>
+<div class="mc-value" id="mc-power">--</div>
+<div class="mc-unit">Watts</div>
+<div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-power" style="background:var(--primary);width:0%"></div></div>
+</div>
+<!-- Voltage with toggle -->
+<div class="card mc orange">
+<div class="mc-top">
+<div class="mc-icon orange">〜</div>
+<div class="src-toggle" id="volt-toggle">
+<button class="st-btn active orange" onclick="switchMetric('volt','grid',this)">Grid</button>
+<button class="st-btn" onclick="switchMetric('volt','solar',this)">Solar</button>
+</div>
+</div>
+<div class="card-label" id="volt-label">Grid Voltage</div>
+<div class="mc-value" id="mc-volt">--</div>
+<div class="mc-unit">Volts</div>
+<div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-volt" style="background:var(--orange-dim);width:0%"></div></div>
+</div>
+<!-- Current with toggle -->
+<div class="card mc teal">
+<div class="mc-top">
+<div class="mc-icon teal">∿</div>
+<div class="src-toggle" id="curr-toggle">
+<button class="st-btn active" onclick="switchMetric('curr','grid',this)">Grid</button>
+<button class="st-btn" onclick="switchMetric('curr','solar',this)">Solar</button>
+</div>
+</div>
+<div class="card-label" id="curr-label">Grid Current</div>
+<div class="mc-value" id="mc-curr">--</div>
+<div class="mc-unit">Amps</div>
+<div class="mc-mini-bar"><div class="mc-mini-fill" id="bar-curr" style="background:var(--teal);width:0%"></div></div>
+</div>
+<!-- Source Status -->
+<div class="card mc">
+<div class="mc-top">
+<div class="mc-icon green">◎</div>
+</div>
+<div class="card-label">Active Source</div>
+<div class="mc-value src-status-big" id="mc-source">--</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+<span class="src-mode-pill" id="mc-mode-pill">AUTO</span>
+<span class="src-pkt" id="mc-pkt">0 pkts</span>
+</div>
+</div>
+</div><!-- /cols-4 -->
+<!-- Charts row: Sparkline + Doughnut -->
+<div class="row cols-2-1">
+<!-- Sparkline -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">⚡ Real-Time Power Demand</div>
+<div class="ch-sub">Last 50 readings • updates every ~2s</div>
+</div>
+</div>
+<div class="chart-body tall"><canvas id="chart-sparkline"></canvas></div>
+</div>
+<!-- Doughnut -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">◎ Source Split</div>
+<div class="ch-sub">Session distribution</div>
+</div>
+</div>
+<div class="chart-body" style="height:200px;display:flex;align-items:center;justify-content:center">
+<canvas id="chart-donut" style="max-height:180px;max-width:180px"></canvas>
+</div>
+<div style="display:flex;justify-content:center;gap:16px;padding:0 14px 12px">
+<div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--orange)">
+<div style="width:8px;height:8px;border-radius:50%;background:var(--orange-dim)"></div>
+<span id="donut-solar-pct">0%</span> Solar
+              </div>
+<div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--red)">
+<div style="width:8px;height:8px;border-radius:50%;background:var(--red-dim)"></div>
+<span id="donut-grid-pct">0%</span> Grid
+              </div>
+</div>
+</div>
+</div>
+</section>
+<!-- ══ ANALYTICS ══ -->
+<section class="section" id="s-analytics">
+<div class="section-title">Analytics <span class="section-sub"><br>24-hour trend charts and breakdowns</span></div>
+<!-- Row 1: Hourly bar + Voltage trend -->
+<div class="row cols-2-1">
+<!-- Hourly Energy Bar -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">☀ Hourly Energy Production</div>
+<div class="ch-sub">Solar vs Grid kWh per hour (last 24h)</div>
+</div>
+</div>
+<div class="chart-body tall"><canvas id="chart-hourly"></canvas></div>
+</div>
+<!-- Voltage trend with switch -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">〜 Voltage Trend</div>
+</div>
+<div class="src-toggle" id="volt-chart-toggle">
+<button class="st-btn active orange" onclick="switchVoltChart('grid',this)">Grid</button>
+<button class="st-btn" onclick="switchVoltChart('solar',this)">Solar</button>
+</div>
+</div>
+<div class="chart-body tall"><canvas id="chart-voltage"></canvas></div>
+</div>
+</div>
+<!-- Row 2: Current area + Savings trend -->
+<div class="row cols-2">
+<!-- Current Trend with switch -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">∿ Current Trend</div>
+<div class="ch-sub">Amp readings over time</div>
+</div>
+<div class="src-toggle" id="curr-chart-toggle">
+<button class="st-btn active" onclick="switchCurrChart('grid',this)">Grid</button>
+<button class="st-btn" onclick="switchCurrChart('solar',this)">Solar</button>
+</div>
+</div>
+<div class="chart-body"><canvas id="chart-current"></canvas></div>
+</div>
+<!-- Savings trend -->
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">◈ Cumulative Savings</div>
+<div class="ch-sub">₹ saved vs full grid use (24h rolling)</div>
+</div>
+</div>
+<div class="chart-body"><canvas id="chart-savings"></canvas></div>
+</div>
+</div>
+<!-- Row 3: Power Gauge Donut -->
+<div class="row cols-3">
+<div class="card">
+<div class="ch-header"><div class="ch-title">⚡ Power Gauge (Live)</div></div>
+<div class="chart-body short" style="height:140px;display:flex;align-items:center;justify-content:center">
+<canvas id="chart-gauge" style="max-height:130px;max-width:220px"></canvas>
+</div>
+<div style="text-align:center;padding-bottom:10px;font-size:10px;color:var(--text-3)">0 W — 3000 W max</div>
+</div>
+<div class="card col-span-2">
+<div class="ch-header">
+<div class="ch-title">☀ Energy Mix (Session)</div>
+<div class="ch-sub">kWh breakdown</div>
+</div>
+<div class="card-body">
+<div id="energy-breakdown">
+<div class="energy-row">
+<span class="energy-lbl" style="color:var(--orange)">☀ Solar</span>
+<div style="flex:2;margin:0 8px"><div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)"><div class="energy-bar-inline" id="ebar-solar" style="background:var(--orange-dim);width:0%"></div></div></div>
+<span class="energy-val" id="eval-solar">0.000</span><span class="energy-pct" id="epct-solar">0%</span>
+</div>
+<div class="energy-row">
+<span class="energy-lbl" style="color:var(--red)">⚡ Grid</span>
+<div style="flex:2;margin:0 8px"><div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)"><div class="energy-bar-inline" id="ebar-grid" style="background:var(--red-dim);width:0%"></div></div></div>
+<span class="energy-val" id="eval-grid">0.000</span><span class="energy-pct" id="epct-grid">100%</span>
+</div>
+<div class="energy-row" style="margin-top:4px;padding-top:8px">
+<span class="energy-lbl" style="font-weight:700;color:var(--text)">Total</span>
+<div style="flex:2"></div>
+<span class="energy-val" id="eval-total">0.000</span><span class="energy-pct">kWh</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ══ SYSTEM LOGS ══ -->
+<section class="section" id="s-logs">
+<div class="section-title">System Logs <span class="section-sub"><br>Hardware status and energy event log</span></div>
+<!-- Component Status -->
+<div class="row">
+<div class="card">
+<div class="card-header">
+<div class="card-title">🔧 Component Status</div>
+<button onclick="refreshLogs()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;font-family:inherit">↻ Refresh</button>
+</div>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Component</th><th>Model / Spec</th><th>Status</th><th>Last Seen</th></tr></thead>
+<tbody id="tb-components"><tr><td class="empty-state" colspan="4">Loading...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Energy Logs -->
+<div class="row">
+<div class="card">
+<div class="card-header">
+<div class="card-title">📋 Energy Log — Recent Entries</div>
+<div style="display:flex;align-items:center;gap:8px">
+<span id="log-count" style="font-size:11px;color:var(--text-3)">0 records</span>
+<button onclick="refreshLogs()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;font-family:inherit">↻ Refresh</button>
+</div>
+</div>
+<div class="tbl-wrap" style="max-height:360px;overflow-y:auto">
+<table>
+<thead><tr><th>#</th><th>Timestamp</th><th>Source</th><th>Solar V</th><th>Solar I</th><th>Grid V</th><th>Grid I</th><th>Power (W)</th><th>Saved (₹)</th></tr></thead>
+<tbody id="tb-logs"><tr><td class="empty-state" colspan="9">No data yet — start the simulator!</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<!-- ══ FINANCIAL ══ -->
+<section class="section" id="s-financial">
+<div class="section-title">Financial <span class="section-sub"><br>Cost analysis and savings tracking</span></div>
+<div class="row cols-3">
+<!-- Savings -->
+<div class="card fin-card">
+<div class="fin-icon" style="background:var(--green-bg)">💰</div>
+<div class="fin-body">
+<div class="fin-label">Total Savings</div>
+<div class="fin-amount" style="color:var(--green)">
+<span class="fin-currency">₹</span><span id="fin-savings">0.00</span>
+</div>
+<div class="fin-sub">vs. buying all energy from grid</div>
+</div>
+</div>
+<!-- Monthly Bill -->
+<div class="card fin-card">
+<div class="fin-icon" style="background:var(--red-bg)">📋</div>
+<div class="fin-body">
+<div class="fin-label">Projected Monthly Bill</div>
+<div class="fin-amount" style="color:var(--red)">
+<span class="fin-currency">₹</span><span id="fin-bill">0.00</span>
+</div>
+<div class="fin-sub">based on today's grid usage × 30 days @ ₹8.50/kWh</div>
+</div>
+</div>
+<!-- ROI -->
+<div class="card" style="padding:18px">
+<div class="fin-label">Solar Panel ROI Tracker</div>
+<div class="fin-amount" style="color:var(--primary);margin:6px 0">
+<span id="fin-roi">0.0000</span><span class="fin-currency">%</span>
+</div>
+<div class="roi-bar-wrap">
+<div class="roi-bar-track"><div class="roi-bar-fill" id="roi-fill" style="width:0%"></div></div>
+<div class="roi-ticks"><span>₹0</span><span>₹25,000</span><span>₹50,000</span></div>
+</div>
+<div class="fin-sub" style="margin-top:4px">Installation cost: ₹50,000 • ₹<span id="fin-saved-abs">0.00</span> recovered</div>
+</div>
+</div>
+<!-- Financial chart: savings trend (full width) -->
+<div class="row">
+<div class="card">
+<div class="ch-header">
+<div>
+<div class="ch-title">📈 Hourly Savings Trend (Last 24h)</div>
+<div class="ch-sub">Cumulative ₹ saved from solar generation</div>
+</div>
+</div>
+<div class="chart-body tall"><canvas id="chart-fin-savings"></canvas></div>
+</div>
+</div>
+<!-- Rate info card -->
+<div class="row cols-3">
+<div class="card" style="padding:14px 16px">
+<div class="fin-label">Grid Tariff Rate</div>
+<div style="font-size:22px;font-weight:800;color:var(--text)">₹8.50<span style="font-size:12px;font-weight:500;color:var(--text-3)">/kWh</span></div>
+<div class="fin-sub">DISCOM unit rate (adjust in server.js)</div>
+</div>
+<div class="card" style="padding:14px 16px">
+<div class="fin-label">Solar Energy (Session)</div>
+<div style="font-size:22px;font-weight:800;color:var(--orange)"><span id="fin-solar-kwh">0.000</span><span style="font-size:12px;font-weight:500;color:var(--text-3)"> kWh</span></div>
+<div class="fin-sub">Total energy generated from solar</div>
+</div>
+<div class="card" style="padding:14px 16px">
+<div class="fin-label">Grid Energy (Session)</div>
+<div style="font-size:22px;font-weight:800;color:var(--red)"><span id="fin-grid-kwh">0.000</span><span style="font-size:12px;font-weight:500;color:var(--text-3)"> kWh</span></div>
+<div class="fin-sub">Total energy consumed from grid</div>
+</div>
+</div>
+</section>
+<!-- ══ REPORT ══ -->
+<section class="section" id="s-report">
+<div class="section-title">Report Generator <span class="section-sub"><br>Export data to Excel (.xlsx)</span></div>
+<div class="row">
+<div class="card report-card">
+<div>
+<div class="card-title" style="margin-bottom:4px">📊 Generate Energy Report</div>
+<div style="font-size:12px;color:var(--text-2)">Select a time period and click Generate to download a multi-sheet Excel report.</div>
+</div>
+<!-- Period selector -->
+<div>
+<div class="fin-label" style="margin-bottom:8px">Select Period</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="period-btn active" onclick="selectPeriod(1,  this)">Last 1 Hour</button>
+<button class="period-btn" onclick="selectPeriod(6,  this)">Last 6 Hours</button>
+<button class="period-btn" onclick="selectPeriod(24, this)">Last 24 Hours</button>
+<button class="period-btn" onclick="selectPeriod(72, this)">Last 3 Days</button>
+<button class="period-btn" onclick="selectPeriod(168,this)">Last 7 Days</button>
+<button class="period-btn" onclick="selectPeriod(720,this)">Last 30 Days</button>
+</div>
+</div>
+<!-- What's included -->
+<div>
+<div class="fin-label" style="margin-bottom:8px">Report includes 4 sheets</div>
+<div class="sheets-grid">
+<div class="sheet-card">
+<div class="sheet-icon">📊</div>
+<div class="sheet-name">Summary</div>
+<div class="sheet-desc">Totals, KPIs, metadata</div>
+</div>
+<div class="sheet-card">
+<div class="sheet-icon">📋</div>
+<div class="sheet-name">Energy Logs</div>
+<div class="sheet-desc">All sensor readings</div>
+</div>
+<div class="sheet-card">
+<div class="sheet-icon">📈</div>
+<div class="sheet-name">Hourly Summary</div>
+<div class="sheet-desc">Aggregated kWh data</div>
+</div>
+<div class="sheet-card">
+<div class="sheet-icon">🔧</div>
+<div class="sheet-name">Components</div>
+<div class="sheet-desc">Hardware inventory</div>
+</div>
+</div>
+</div>
+<!-- Preview -->
+<div class="report-preview">
+<div class="report-preview-title">Report Preview</div>
+<div class="rp-row"><span class="rp-key">Period</span><span class="rp-val" id="rp-period">Last 1 Hour</span></div>
+<div class="rp-row"><span class="rp-key">Records (est.)</span><span class="rp-val" id="rp-records">--</span></div>
+<div class="rp-row"><span class="rp-key">Total Savings</span><span class="rp-val" id="rp-savings">--</span></div>
+<div class="rp-row"><span class="rp-key">Solar kWh</span><span class="rp-val" id="rp-solar-kwh">--</span></div>
+<div class="rp-row"><span class="rp-key">Grid kWh</span><span class="rp-val" id="rp-grid-kwh">--</span></div>
+</div>
+<button class="gen-btn" id="gen-btn" onclick="generateExcelReport()">
+              ↧  Download Excel Report
+            </button>
+</div>
+</div>
+</section>
+<section class="section" id="s-apkdownload">
+<div class="section-title">Download App <span class="section-sub"><br>Get the Solaris mobile companion</span></div>
+<div class="row">
+<div class="card">
+<div class="card-header">
+<div class="card-title">📲 Solaris Android App</div>
+<span id="apk-avail-badge" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--orange-bg);color:var(--orange)">Checking...</span>
+</div>
+<div class="card-body" style="display:flex;flex-direction:column;gap:20px">
+<!-- App info row -->
+<div style="display:flex;gap:16px;align-items:center">
+<div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#f59e0b,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 4px 16px rgba(245,158,11,0.35);flex-shrink:0">☀</div>
+<div>
+<div style="font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.02em">Project Solaris</div>
+<div style="font-size:12px;color:var(--text-2);margin-top:2px">IIoT Solar Monitor · Android</div>
+<div id="apk-file-info" style="font-size:11px;color:var(--text-3);margin-top:4px">Loading file info…</div>
+</div>
+</div>
+<!-- Feature list -->
+<div style="background:var(--bg);border-radius:9px;border:1px solid var(--border);padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:11px;font-weight:700;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px">What's included</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)"><span style="color:var(--green);font-size:14px">✓</span> Real-time monitoring</div>
+<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)"><span style="color:var(--green);font-size:14px">✓</span> Relay control</div>
+<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)"><span style="color:var(--green);font-size:14px">✓</span> Live charts</div>
+<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)"><span style="color:var(--green);font-size:14px">✓</span> Financial tracking</div>
+</div>
+</div>
+<!-- Install instructions -->
+<div style="background:var(--orange-bg);border-radius:9px;border:1px solid #fde68a;padding:12px 14px">
+<div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">⚠ Before Installing</div>
+<div style="font-size:12px;color:var(--orange);line-height:1.6">
+                  Enable <strong>Install from Unknown Sources</strong> in Android Settings → Security, then open the downloaded APK to install.
+                </div>
+</div>
+<!-- Download button + progress -->
+<div>
+<button class="gen-btn" id="apk-dl-btn" onclick="downloadAPK()" style="width:100%;font-size:14px;padding:14px 20px;gap:8px">
+<span id="apk-dl-icon">📲</span>
+<span id="apk-dl-text">Download Solaris APK</span>
+</button>
+<!-- Progress bar (hidden until download starts) -->
+<div id="apk-progress-wrap" style="display:none;margin-top:12px">
+<div style="display:flex;justify-content:space-between;margin-bottom:5px">
+<span id="apk-progress-label" style="font-size:11px;font-weight:600;color:var(--text-2)">Requesting from server…</span>
+<span id="apk-progress-pct" style="font-size:11px;color:var(--text-3)"></span>
+</div>
+<div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)">
+<div id="apk-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--green-dim));border-radius:99px;width:0%;transition:width 0.3s ease"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<nav aria-label="Main navigation" id="bottom-nav">
+<button class="bn-item active" id="bn-overview" onclick="showSection('overview',  this, true)">
+<div class="bn-icon">◫</div>
+<span class="bn-label">Overview</span>
+</button>
+<button class="bn-item" id="bn-analytics" onclick="showSection('analytics', this, true)">
+<div class="bn-icon">〜</div>
+<span class="bn-label">Analytics</span>
+</button>
+<button class="bn-item" id="bn-logs" onclick="showSection('logs', this, true)">
+<div class="bn-icon">≡</div>
+<span class="bn-label">Logs</span>
+</button>
+<button class="bn-item" id="bn-financial" onclick="showSection('financial', this, true)">
+<div class="bn-icon">◈</div>
+<span class="bn-label">Finance</span>
+</button>
+<button class="bn-item" id="bn-report" onclick="showSection('report', this, true)">
+<div class="bn-icon">↧</div>
+<span class="bn-label">Report</span>
+</button>
+<button class="bn-item" id="bn-apkdownload" onclick="showSection('apkdownload', this, true)">
+<div class="bn-icon">📲</div>
+<span class="bn-label">App</span>
+</button>
+</nav>
+</main></div><!-- /content -->
+
 
 <!-- ═══ API URL CONFIG MODAL ═══ -->
 <div id="url-modal-backdrop">
-  <div id="url-modal">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
-      <div class="modal-icon">🔗</div>
-      <button onclick="closeUrlModal()" id="modal-close-x" title="Close"
-        style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-3);line-height:1;padding:2px 4px;border-radius:5px;transition:all 0.15s"
-        onmouseover="this.style.background='var(--bg)';this.style.color='var(--text)'"
-        onmouseout="this.style.background='none';this.style.color='var(--text-3)'">✕</button>
-    </div>
-    <div class="modal-title">API Server URL</div>
-    <div class="modal-sub" id="modal-sub-text">
+<div id="url-modal">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+<div class="modal-icon">🔗</div>
+<button id="modal-close-x" onclick="closeUrlModal()" onmouseout="this.style.background='none';this.style.color='var(--text-3)'" onmouseover="this.style.background='var(--bg)';this.style.color='var(--text)'" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-3);line-height:1;padding:2px 4px;border-radius:5px;transition:all 0.15s" title="Close">✕</button>
+</div>
+<div class="modal-title">API Server URL</div>
+<div class="modal-sub" id="modal-sub-text">
       Enter your Cloudflare Tunnel URL (or <code>http://localhost:3000</code> for local use). This is saved in your browser and won't need to be re-entered.
     </div>
-    <div class="modal-label">Server URL</div>
-    <input
-      class="modal-input" id="modal-url-input"
-      type="url" spellcheck="false" autocomplete="off"
-      placeholder="https://your-tunnel.trycloudflare.com"
-    />
-    <div class="modal-error" id="modal-error">Please enter a valid URL starting with http:// or https://</div>
-    <div class="modal-hint">
-      Examples:<br>
-      <code>https://abc-xyz.trycloudflare.com</code> — Cloudflare Tunnel<br>
-      <code>http://localhost:3000</code> — Local development
+<div class="modal-label">Server URL</div>
+<input autocomplete="off" class="modal-input" id="modal-url-input" placeholder="https://your-tunnel.trycloudflare.com" spellcheck="false" type="url"/>
+<div class="modal-error" id="modal-error">Please enter a valid URL starting with http:// or https://</div>
+<div class="modal-hint">
+      Examples:<br/>
+<code>https://abc-xyz.trycloudflare.com</code> — Cloudflare Tunnel<br/>
+<code>http://localhost:3000</code> — Local development
     </div>
-    <div class="modal-status" id="modal-status">
-      <span id="modal-status-text">Testing connection...</span>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-save" onclick="saveUrlFromModal()">Save &amp; Connect</button>
-      <button class="modal-cancel" id="modal-cancel-btn" onclick="closeUrlModal()">Cancel</button>
-    </div>
-  </div>
+<div class="modal-status" id="modal-status">
+<span id="modal-status-text">Testing connection...</span>
 </div>
-
+<div class="modal-actions">
+<button class="modal-save" onclick="saveUrlFromModal()">Save &amp; Connect</button>
+<button class="modal-cancel" id="modal-cancel-btn" onclick="closeUrlModal()">Cancel</button>
+</div>
+</div>
+</div>
 <div id="toast"></div>
-
 <script>
 /* ═══════════════════════════════════════════════════════════
    PROJECT SOLARIS — Dashboard JavaScript
@@ -1061,14 +1317,18 @@ async function saveUrlFromModal() {
 }
 
 function updateSidebarUrlDisplay() {
+  // Update sidebar URL text
   const el = document.getElementById('sb-url-display');
-  if (!el) return;
+  let display = API_BASE;
   try {
     const parsed = new URL(API_BASE);
-    el.textContent = parsed.hostname + (parsed.port ? ':' + parsed.port : '');
-  } catch {
-    el.textContent = API_BASE;
-  }
+    display = parsed.hostname + (parsed.port ? ':' + parsed.port : '');
+  } catch {}
+  if (el) el.textContent = display;
+
+  // Also update mobile settings button tooltip
+  const settingsBtn = document.getElementById('tb-settings-btn');
+  if (settingsBtn) settingsBtn.title = 'API: ' + display + ' · tap to change';
 }
 
 // ── Chart.js global defaults ─────────────────────────────
@@ -1119,8 +1379,14 @@ const SECTION_NAMES = {
 function showSection(name, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
   $(`s-${name}`).classList.add('active');
   btn.classList.add('active');
+  // Keep sidebar + bottom-nav in sync
+  const _bn = document.getElementById('bn-' + name);
+  if (_bn) _bn.classList.add('active');
+  const _sb = document.querySelector('.nav-item[onclick*="' + "'" + name + "'" + '"]');
+  if (_sb) _sb.classList.add('active');
   $('tb-section-name').textContent = SECTION_NAMES[name] || name;
   state.currentSection = name;
 
@@ -1211,9 +1477,22 @@ function updateSidebar(d) {
   const dot   = $('sb-esp-dot');
   const label = $('sb-esp-label');
   const pkt   = $('sb-esp-pkt');
-  dot.className = 'sb-esp-dot ' + (d.esp32_online ? 'online' : 'offline');
-  label.textContent = d.esp32_online ? 'ESP32 Online' : 'ESP32 Offline';
+  const online = d.esp32_online;
+  dot.className = 'sb-esp-dot ' + (online ? 'online' : 'offline');
+  label.textContent = online ? 'ESP32 Online' : 'ESP32 Offline';
   pkt.textContent   = `${d.packets_rx} packets received`;
+
+  // ── Mirror to mobile topbar chip ──
+  const tbDot   = $('tb-esp-dot');
+  const tbLabel = $('tb-esp-label-topbar');
+  if (tbDot)   tbDot.className   = 'tb-esp-dot ' + (online ? 'online' : 'offline');
+  if (tbLabel) tbLabel.textContent = online ? 'ESP32 ✓' : 'ESP32 ✗';
+  // Colour the chip border to match status
+  const chip = $('tb-esp-chip');
+  if (chip) {
+    chip.style.borderColor = online ? '#22c55e' : '#ef4444';
+    chip.style.background  = online ? 'rgba(34,197,94,0.07)' : 'rgba(239,68,68,0.07)';
+  }
 }
 
 function updateMetricCards(d) {
@@ -1659,7 +1938,7 @@ async function setMode(mode) {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ mode }),
     });
-    $('btn-auto').className   = 'ctrl-btn' + (mode === 'AUTO'   ? ' active-auto'   : '');
+    $('btn-auto').className   = 'ctrl-btn' + (mode === 'AUTO' ? ' active-auto' : '');
     $('btn-manual').className = 'ctrl-btn' + (mode === 'MANUAL' ? ' active-manual' : '');
     $('force-wrap').className = 'force-wrap' + (mode === 'MANUAL' ? ' show' : '');
     toast(mode === 'AUTO' ? '🤖 AUTO mode active' : '🎛️ MANUAL mode active');
@@ -1814,6 +2093,100 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchStatus();
   scheduleNextPoll();
 });
+function downloadAPK() {
+    // This creates a temporary link and clicks it automatically
+    const downloadUrl = '/download-app'; 
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', 'Solaris.apk');
+    document.body.appendChild(link);
+    
+    // Show a toast message so the user knows it's starting
+    if (typeof toast === 'function') {
+        toast("Starting Download...");
+    }
+    
+    link.click();
+    document.body.removeChild(link);
+}
+async function downloadAPK() {
+  const btn       = document.getElementById('apk-dl-btn');
+  const dlText    = document.getElementById('apk-dl-text');
+  const dlIcon    = document.getElementById('apk-dl-icon');
+  const progWrap  = document.getElementById('apk-progress-wrap');
+  const progBar   = document.getElementById('apk-progress-bar');
+  const progLabel = document.getElementById('apk-progress-label');
+  const progPct   = document.getElementById('apk-progress-pct');
+
+  if (btn) btn.disabled = true;
+  if (dlIcon) dlIcon.textContent = '⏳';
+  if (dlText) dlText.textContent = 'Connecting to server…';
+  if (progWrap) progWrap.style.display = 'block';
+  if (progBar)  progBar.style.width = '5%';
+  if (progLabel) progLabel.textContent = 'Requesting APK from server…';
+
+  try {
+    const res = await fetch(`${API_BASE}/download-app`);
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+
+    const contentLength = res.headers.get('Content-Length');
+    const total = contentLength ? parseInt(contentLength, 10) : null;
+
+    if (progLabel) progLabel.textContent = total ? 'Downloading…' : 'Downloading (size unknown)…';
+    if (progBar)   progBar.style.width = total ? '10%' : '40%';
+
+    const reader   = res.body.getReader();
+    const chunks   = [];
+    let   received = 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (total) {
+        const pct = Math.round((received / total) * 100);
+        if (progBar)  progBar.style.width = pct + '%';
+        if (progPct)  progPct.textContent = pct + '%';
+        if (dlText)   dlText.textContent  = 'Downloading… ' + pct + '%';
+      }
+    }
+
+    // Assemble and trigger browser save
+    const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'Solaris.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    if (progBar)   progBar.style.width   = '100%';
+    if (progLabel) progLabel.textContent = '✅ Download complete!';
+    if (progPct)   progPct.textContent   = '100%';
+    if (dlIcon)    dlIcon.textContent    = '✅';
+    if (dlText)    dlText.textContent    = 'Download Complete!';
+    toast('✅ Solaris APK downloaded!');
+
+    setTimeout(() => {
+      if (progWrap) progWrap.style.display = 'none';
+      if (btn)      btn.disabled = false;
+      if (dlIcon)   dlIcon.textContent = '📲';
+      if (dlText)   dlText.textContent = 'Download Solaris APK';
+    }, 3500);
+
+  } catch (e) {
+    if (progBar)   progBar.style.background = 'var(--red-dim)'; progBar && (progBar.style.width = '100%');
+    if (progLabel) progLabel.textContent = '❌ Download failed: ' + e.message;
+    if (dlIcon)    dlIcon.textContent = '❌';
+    if (dlText)    dlText.textContent = 'Download Failed — Retry';
+    if (btn)       btn.disabled = false;
+    toast('❌ APK download failed');
+  }
+}
 </script>
 </body>
 </html>
